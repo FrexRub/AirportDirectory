@@ -51,7 +51,6 @@ description = """
     * **Make a transaction**
 """  # noqa: W293
 
-# включение webhooks в документацию
 app = FastAPI(
     title="AirportDirectory",
     description=description,
@@ -70,7 +69,6 @@ app.add_middleware(
 )
 
 app.add_middleware(SessionMiddleware, secret_key=setting_conn.SECRET_KEY)
-# app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 app.include_router(router_auth)

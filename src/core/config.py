@@ -9,7 +9,9 @@ BASE_DIR = Path(__file__).parent.parent.parent
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 
-COOKIE_NAME = "bonds_score"
+REDIRECT_URI = "http://localhost:8000/auth/google"
+
+COOKIE_NAME = "bonds_airport"
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 

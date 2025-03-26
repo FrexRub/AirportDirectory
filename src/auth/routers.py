@@ -1,8 +1,18 @@
-from fastapi import APIRouter, Request
+import logging
+
+from fastapi import APIRouter, Request, Response, status
 from starlette.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth, OAuthError
 
-from src.core.config import setting_conn, configure_logging, templates
+from src.core.config import (
+    setting_conn,
+    configure_logging,
+    templates,
+    REDIRECT_URI,
+    COOKIE_NAME,
+)
+from src.core.exceptions import CREDENTIALS_EXCEPTION
+from src.core.jwt_utils import create_jwt, validate_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -14,9 +24,13 @@ oauth.register(
     client_secret=setting_conn.CLIENT_SECRET,
     client_kwargs={
         "scope": "email openid profile",
-        "redirect_uri": "http://localhost:8000/auth/google",
+        "redirect_uri": REDIRECT_URI,
     },
 )
+
+
+configure_logging(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @router.get("/login/google")
@@ -25,26 +39,45 @@ async def login(request: Request):
     return await oauth.google.authorize_redirect(request, url)
 
 
-# @router.get('/auth')
 @router.get("/google")
 async def auth_google(request: Request):
     try:
         token = await oauth.google.authorize_access_token(request)
     except OAuthError as e:
-        return templates.TemplateResponse(
-            name="error.html", context={"request": request, "error": e.error}
-        )
+        raise CREDENTIALS_EXCEPTION
+        # return templates.TemplateResponse(
+        #     name="error.html", context={"request": request, "error": e.error}
+        # )
+    # user_data = await oauth.google.parse_id_token(request, token)
+    # user_email = user_data["email"]
+
     user = token.get("userinfo")
+    logger.info(f"User info {user}")
+    user_email = user.get("email")
     if user:
         request.session["user"] = dict(user)
-    return RedirectResponse("welcome")
+
+    # access_token: str = create_jwt(str(user.id))
+    access_token: str = await create_jwt(user_email)
+
+    resp = RedirectResponse("welcome")
+    # resp = Response(
+    #     content="The user is logged in",
+    #     status_code=status.HTTP_202_ACCEPTED,
+    # )
+    resp.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True)
+    return resp
+
+    # return RedirectResponse("welcome")
 
 
 @router.get("/logout")
 def logout(request: Request):
+    resp = RedirectResponse("/")
+    resp.delete_cookie(COOKIE_NAME)
     request.session.pop("user")
     request.session.clear()
-    return RedirectResponse("/")
+    return resp
 
 
 @router.get("/welcome")
