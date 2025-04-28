@@ -119,7 +119,7 @@ async def user_register(
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(email=new_user.email, full_name=new_user.username)
+            user=UserInfoSchemas(email=new_user.email, full_name=new_user.username),
         )
 
 
