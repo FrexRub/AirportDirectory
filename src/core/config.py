@@ -26,8 +26,8 @@ class SettingConn(BaseSettings):
     postgres_port: int
 
     SECRET_KEY: str
-    CLIENT_ID: str
-    CLIENT_SECRET: str
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
 
