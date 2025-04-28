@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request, Response, status, Depends
 from fastapi.exceptions import HTTPException
 from starlette.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.users.models import User
+from src.models.user import User
 from src.core.config import (
     setting,
     configure_logging,

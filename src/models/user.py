@@ -1,22 +1,13 @@
 from datetime import datetime
-from uuid import uuid4
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, func, UUID, String
+from sqlalchemy import Boolean, DateTime, func, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.core.database import Base
+from src.models.base import Base
 
 
 class User(Base):
-    __tablename__ = "users"
-
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid4,
-        server_default=func.gen_random_uuid(),
-    )
     full_name: Mapped[Optional[str]]
     email: Mapped[str] = mapped_column(unique=True, index=True)
     registered_at: Mapped[DateTime] = mapped_column(
@@ -27,3 +18,9 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String, nullable=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, username={self.full_name!r})"
+
+    def repr(self) -> str:
+        return str(self)

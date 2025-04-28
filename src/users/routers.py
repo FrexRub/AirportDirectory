@@ -24,7 +24,7 @@ from src.core.depends import (
     current_user_authorization_cookie,
     user_by_id,
 )
-from src.users.models import User
+from src.models.user import User
 from src.users.schemas import (
     UserCreateSchemas,
     OutUserSchemas,
