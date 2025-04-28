@@ -18,12 +18,12 @@ from src.core.jwt_utils import create_jwt, validate_password
 from src.core.database import get_async_session
 from src.auth.utils import get_yandex_user_data, get_access_token
 from src.auth.schemas import LoginSchemas
-from src.users.crud import (
+from src.api_v1.users.crud import (
     find_user_by_email,
     create_user_without_password,
     get_user_from_db,
 )
-from src.users.schemas import UserBaseSchemas
+from src.api_v1.users.schemas import UserBaseSchemas
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])

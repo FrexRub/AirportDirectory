@@ -12,7 +12,7 @@ from src.core.exceptions import (
     EmailInUse,
     UniqueViolationError,
 )
-from src.users.crud import (
+from src.api_v1.users.crud import (
     create_user,
     get_users,
     update_user_db,
@@ -21,11 +21,11 @@ from src.users.crud import (
 )
 from src.core.depends import (
     current_superuser_user,
-    current_user_authorization_cookie,
+    current_user_authorization,
     user_by_id,
 )
 from src.models.user import User
-from src.users.schemas import (
+from src.api_v1.users.schemas import (
     UserCreateSchemas,
     OutUserSchemas,
     UserUpdateSchemas,
@@ -57,7 +57,7 @@ async def get_list_users(
 )
 async def get_info_about_me(
     session: AsyncSession = Depends(get_async_session),
-    user: User = Depends(current_user_authorization_cookie),
+    user: User = Depends(current_user_authorization),
 ):
     return await find_user_by_email(session=session, email=user.email)
 

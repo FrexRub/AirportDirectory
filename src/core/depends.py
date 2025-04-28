@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_async_session
 from src.core.config import COOKIE_NAME, setting
 from src.core.jwt_utils import decode_jwt, create_jwt
-from src.users.crud import get_user_by_id
+from src.api_v1.users.crud import get_user_by_id
 from src.models.user import User
 
 cookie_scheme = APIKeyCookie(name=COOKIE_NAME)

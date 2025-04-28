@@ -16,7 +16,7 @@ from src.core.exceptions import (
 )
 from src.core.jwt_utils import create_hash_password
 from src.models.user import User
-from src.users.schemas import (
+from src.api_v1.users.schemas import (
     UserCreateSchemas,
     UserUpdateSchemas,
     UserUpdatePartialSchemas,
