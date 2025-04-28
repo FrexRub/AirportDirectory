@@ -33,25 +33,27 @@ class UserUpdatePartialSchemas(BaseModel):
     email: Optional[EmailStr] = None
 
 
-class UserCreateSchemas(UserBaseSchemas):
-    hashed_password: str = Field(alias="password")
+class UserCreateSchemas(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
 
-    @field_validator("hashed_password")
+    @field_validator("password")
     def validate_password(cls, value):
         if not re.match(PATTERN_PASSWORD, value):
             raise ValueError("Invalid password")
         return value
 
 
-class OutUserSchemas(UserBaseSchemas):
-    registered_at: datetime
-    id: UUID4 = Field(default_factory=uuid4)
+class UserInfoSchemas(BaseModel):
+    email: EmailStr
+    full_name: str
 
-    model_config = ConfigDict(from_attributes=True)
 
-    @field_serializer("registered_at")
-    def serialize_registered_at(self, dt: datetime, _info):
-        return dt.strftime("%d-%b-%Y")
+class OutUserSchemas(BaseModel):
+    access_token: str
+    token_type: str
+    user: UserInfoSchemas
 
 
 class LoginSchemas(BaseModel):
