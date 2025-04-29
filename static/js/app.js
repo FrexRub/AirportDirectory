@@ -1,6 +1,7 @@
 const { createApp, ref, onMounted } = Vue;
 
 createApp({
+    // delimiters: ['${', '}'], // Меняем синтаксис интерполяции Vue
     setup() {
         // Состояние UI
         const showAuthModal = ref(false);

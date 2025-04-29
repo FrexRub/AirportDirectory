@@ -32,31 +32,35 @@ async def current_user_authorization(
     try:
         payload = await decode_jwt(token)
     except jwt.ExpiredSignatureError:
-        # получаем пользователя по ID из сессии
-        id_user: UUID = UUID(request.session["user"].get("id"))
-        user: User = await get_user_by_id(session=session, id_user=id_user)
-
-        # проверяем наличие refresh_token
-        if user.refresh_token is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
-            )
-        # извлекаем данные из refresh_token
-        try:
-            payload = await decode_jwt(user.refresh_token)
-        except jwt.ExpiredSignatureError:
-            # в случае экспирации токена авторизируемся заново
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Session expired. Please login again",
-            )
-        else:
-            access_token: str = await create_jwt(
-                user=str(user.id),
-                expire_minutes=setting.auth_jwt.access_token_expire_minutes,
-            )
-            response.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True)
-            return user
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
+        )
+        #
+        # # получаем пользователя по ID из сессии
+        # id_user: UUID = UUID(request.session["user"].get("id"))
+        # user: User = await get_user_by_id(session=session, id_user=id_user)
+        #
+        # # проверяем наличие refresh_token
+        # if user.refresh_token is None:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
+        #     )
+        # # извлекаем данные из refresh_token
+        # try:
+        #     payload = await decode_jwt(user.refresh_token)
+        # except jwt.ExpiredSignatureError:
+        #     # в случае экспирации токена авторизируемся заново
+        #     raise HTTPException(
+        #         status_code=status.HTTP_401_UNAUTHORIZED,
+        #         detail="Session expired. Please login again",
+        #     )
+        # else:
+        #     access_token: str = await create_jwt(
+        #         user=str(user.id),
+        #         expire_minutes=setting.auth_jwt.access_token_expire_minutes,
+        #     )
+        #     response.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True)
+        #     return user
 
     else:
         id_user = UUID(payload["sub"])
