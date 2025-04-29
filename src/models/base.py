@@ -2,9 +2,10 @@ from uuid import uuid4
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, declared_attr
 from sqlalchemy import func, UUID
+from sqlalchemy.ext.asyncio import AsyncAttrs
 
 
-class Base(DeclarativeBase):
+class Base(AsyncAttrs, DeclarativeBase):
     __abstract__ = True
 
     @declared_attr.directive

@@ -1,16 +1,17 @@
 import logging
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Response
+from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from src.core.database import get_async_session
-from src.core.config import configure_logging, setting
+from src.core.config import configure_logging, setting, COOKIE_NAME
 from src.core.exceptions import (
     ErrorInData,
     EmailInUse,
     UniqueViolationError,
+    NotFindUser
 )
 from src.api_v1.users.crud import (
     create_user,
@@ -18,6 +19,7 @@ from src.api_v1.users.crud import (
     update_user_db,
     delete_user_db,
     find_user_by_email,
+    get_user_from_db
 )
 from src.core.depends import (
     current_superuser_user,
@@ -31,6 +33,7 @@ from src.api_v1.users.schemas import (
     UserUpdateSchemas,
     UserUpdatePartialSchemas,
     UserInfoSchemas,
+    LoginSchemas,
 )
 from src.core.jwt_utils import create_jwt, validate_password
 
@@ -41,39 +44,62 @@ logger = logging.getLogger(__name__)
 
 
 @router.get(
-    "/list",
-    response_model=list[OutUserSchemas],
-    status_code=status.HTTP_200_OK,
-)
-async def get_list_users(
-    session: AsyncSession = Depends(get_async_session),
-    user: User = Depends(current_superuser_user),
-):
-    return await get_users(session=session)
-
-
-@router.get(
     "/me",
     response_model=OutUserSchemas,
     status_code=status.HTTP_200_OK,
 )
 async def get_info_about_me(
-    session: AsyncSession = Depends(get_async_session),
-    user: User = Depends(current_user_authorization),
+        session: AsyncSession = Depends(get_async_session),
+        user: User = Depends(current_user_authorization),
 ):
     return await find_user_by_email(session=session, email=user.email)
 
 
-# @router.post("/user/register")
-# def user_register(form_data: RegisterSchemas):
-#     logger.info(f"Register {form_data.username}")
-#
-#     user_info = {"email": form_data.email, "full_name": form_data.username}
-#     return {
-#         "access_token": "access_token",
-#         "token_type": "bearer",
-#         "user": user_info,
-#     }
+@router.post("/login", response_model=OutUserSchemas, status_code=status.HTTP_202_ACCEPTED)
+async def userlogin(
+        response: Response, data_login: LoginSchemas, session: AsyncSession = Depends(get_async_session)
+):
+    logger.info(f"start login {data_login.username}")
+
+    try:
+        user: User = await get_user_from_db(
+            session=session, email=data_login.username
+        )
+    except NotFindUser:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The user with the username: {data_login.username} not found",
+        )
+
+    if await validate_password(
+            password=data_login.password, hashed_password=user.hashed_password
+    ):
+        access_token: str = await create_jwt(
+            user=str(user.id),
+            expire_minutes=setting.auth_jwt.access_token_expire_minutes,
+        )
+        refresh_token: str = await create_jwt(
+            user=str(user.id),
+            expire_minutes=setting.auth_jwt.refresh_token_expire_minutes,
+        )
+
+        # resp = Response(
+        #     content="The user is logged in",
+        #     status_code=status.HTTP_202_ACCEPTED,
+        # )
+        response.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True, samesite="strict")
+        logger.info(f"User {data_login.username} logged in")
+
+        return OutUserSchemas(
+            access_token=access_token,
+            token_type="bearer",
+            user=UserInfoSchemas(email=data_login.username, full_name=user.full_name),
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error password for login: {data_login.username}",
+        )
 
 
 @router.post(
@@ -83,8 +109,9 @@ async def get_info_about_me(
     include_in_schema=True,
 )
 async def user_register(
-    new_user: UserCreateSchemas,
-    session: AsyncSession = Depends(get_async_session),
+        response: Response,
+        new_user: UserCreateSchemas,
+        session: AsyncSession = Depends(get_async_session),
 ):
     try:
         user: User = await create_user(session=session, user_data=new_user)
@@ -110,24 +137,28 @@ async def user_register(
 
         # user.refresh_token = refresh_token
         # await session.commit()
+        out_info: OutUserSchemas = OutUserSchemas(
+            access_token=access_token,
+            token_type="bearer",
+            user=UserInfoSchemas(email=new_user.email, full_name=new_user.full_name),
+        )
+        # resp = JSONResponse(content=out_info.model_dump())
+        # resp.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True, samesite="strict")
 
-        # resp = Response(
-        #     content="The user is logged in",
-        #     status_code=status.HTTP_202_ACCEPTED,
-        # )
+        response.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True, samesite="strict")
 
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(email=new_user.email, full_name=new_user.username),
+            user=UserInfoSchemas(email=new_user.email, full_name=new_user.full_name),
         )
 
 
 @router.delete("/{id_user}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-    user: User = Depends(user_by_id),
-    super_user: User = Depends(current_superuser_user),
-    session: AsyncSession = Depends(get_async_session),
+        user: User = Depends(user_by_id),
+        super_user: User = Depends(current_superuser_user),
+        session: AsyncSession = Depends(get_async_session),
 ) -> None:
     await delete_user_db(session=session, user=user)
 
@@ -136,9 +167,9 @@ async def delete_user(
     "/{id_user}/", response_model=OutUserSchemas, status_code=status.HTTP_200_OK
 )
 async def update_user(
-    user_update: UserUpdateSchemas,
-    user: User = Depends(user_by_id),
-    session: AsyncSession = Depends(get_async_session),
+        user_update: UserUpdateSchemas,
+        user: User = Depends(user_by_id),
+        session: AsyncSession = Depends(get_async_session),
 ):
     try:
         res = await update_user_db(session=session, user=user, user_update=user_update)
@@ -155,9 +186,9 @@ async def update_user(
     "/{id_user}/", response_model=OutUserSchemas, status_code=status.HTTP_200_OK
 )
 async def update_user_partial(
-    user_update: UserUpdatePartialSchemas,
-    user: User = Depends(user_by_id),
-    session: AsyncSession = Depends(get_async_session),
+        user_update: UserUpdatePartialSchemas,
+        user: User = Depends(user_by_id),
+        session: AsyncSession = Depends(get_async_session),
 ):
     try:
         res = await update_user_db(

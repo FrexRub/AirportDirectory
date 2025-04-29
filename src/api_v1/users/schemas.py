@@ -33,21 +33,21 @@ class UserUpdatePartialSchemas(BaseModel):
     email: Optional[EmailStr] = None
 
 
+# class UserCreateSchemas(UserBaseSchemas):
 class UserCreateSchemas(BaseModel):
-    username: str
+    full_name: str = Field(alias="username")
     email: EmailStr
-    password: str
+    hashed_password: str = Field(alias="password")
 
-    @field_validator("password")
+    @field_validator("hashed_password")
     def validate_password(cls, value):
         if not re.match(PATTERN_PASSWORD, value):
             raise ValueError("Invalid password")
         return value
 
 
-class UserInfoSchemas(BaseModel):
-    email: EmailStr
-    full_name: str
+class UserInfoSchemas(UserBaseSchemas):
+    pass
 
 
 class OutUserSchemas(BaseModel):

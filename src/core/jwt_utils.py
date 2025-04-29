@@ -24,21 +24,21 @@ async def create_hash_password(password: str) -> bytes:
 
 async def validate_password(
     password: str,
-    hashed_password: bytes,
+    hashed_password: str,
 ) -> bool:
     """
     Проверка валидности пароля. Проверяет пароль с хеш-значением правильного пароля
     :param password: переданный пароль
     :type password: str
     :param hashed_password: хеш-значение правильного пароля
-    :type hashed_password: bytes
+    :type hashed_password: str
     :rtype: bool
     :return: возвращает True, если пароль верный иначе - False
     """
     await asyncio.sleep(0)
     return bcrypt.checkpw(
         password=password.encode(),
-        hashed_password=hashed_password,
+        hashed_password=hashed_password.encode(),
     )
 
 
