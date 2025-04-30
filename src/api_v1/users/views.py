@@ -159,7 +159,6 @@ def logout(request: Request, response: Response):
     request.session.clear()
 
 
-
 @router.delete("/{id_user}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
         user: User = Depends(user_by_id),
