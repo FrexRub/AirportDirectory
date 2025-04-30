@@ -185,7 +185,7 @@ createApp({
                 showAuthModal.value = false;
                 authData.value = { name: '', email: '', password: '' };
 
-                console.log('Успешная авторизация:', isUser.name.value);
+                console.log('Успешная авторизация:', isUser.value.name);
         
             } catch (error) {
                 console.error('Login error:', error);
@@ -263,9 +263,15 @@ createApp({
             }
         };
 
-        const logout = () => {
+        const logout = async () => {
             isUser.value = null;
             localStorage.removeItem('authToken');
+
+            const response = await fetch('http://localhost:8000/api/users/logout');
+                
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
         };
 
         // Загружаем данные сразу при запуске
