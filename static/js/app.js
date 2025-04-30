@@ -15,6 +15,8 @@ createApp({
         const userCity = ref(null);
         const geoLoading = ref(false);
         const geoError = ref(null);
+        const accessToken = ref('');
+        const refreshToken = ref('');
         
         // Данные пользователя
         const isUser = ref(null);
@@ -155,14 +157,16 @@ createApp({
                 }
         
                 // Успешный ответ
-                const { access_token, token_type, user } = await response.json();
+                // const { access_token, token_type, user } = await response.json();
+                const { access_token, refresh_token, token_type, user } = await response.json();
 
                 // Выводим в консоль полученные данные
-                console.log("Данные полученные с сервера:", {
-                    access_token,
-                    token_type,
-                    user
-                });
+                // console.log("Данные полученные с сервера:", {
+                //     access_token,
+                //     refresh_token,
+                //     token_type,
+                //     user
+                // });
 
 
                 // Сохранение данных пользователя
@@ -175,12 +179,13 @@ createApp({
         
                 // Сохранение токена в localStorage
                 localStorage.setItem('authToken', access_token);
+
                 
                 // Закрытие модального окна и сброс формы
                 showAuthModal.value = false;
                 authData.value = { name: '', email: '', password: '' };
 
-                console.log('Успешная авторизация:', isUser.value);
+                console.log('Успешная авторизация:', isUser.name.value);
         
             } catch (error) {
                 console.error('Login error:', error);
@@ -228,7 +233,8 @@ createApp({
             }
 
             // Успешный ответ
-            const { access_token, token_type, user } = await response.json();
+            // const { access_token, token_type, user } = await response.json();
+            const { access_token, refresh_token, token_type, user } = await response.json();
 
 
             // Сохранение данных пользователя
