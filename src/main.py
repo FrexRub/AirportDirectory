@@ -2,13 +2,11 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 
 from src.api_v1 import router as api_router
-from src.core.config import STATIC_DIR, configure_logging, setting_conn
+from src.core.config import configure_logging, setting_conn
 
 description = """
     API airport directory
@@ -37,21 +35,10 @@ app.add_middleware(
 
 app.add_middleware(SessionMiddleware, secret_key=setting_conn.SECRET_KEY)
 
-staticfiles = StaticFiles(directory=STATIC_DIR)
-template = Jinja2Templates(directory=STATIC_DIR)
-
-app.mount("/static", staticfiles, name="static")
-
 app.include_router(router=api_router)
 
 configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-# @app.get("/", response_class=HTMLResponse)
-# def main_page(request: Request):
-#     logger.info(f"start site")
-#     return template.TemplateResponse("index.html", {"request": request})
 
 
 if __name__ == "__main__":

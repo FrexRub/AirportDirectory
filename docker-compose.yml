@@ -1,7 +1,5 @@
-version: "3.9"
-
 services:
-  db_audio:
+  db_airport:
     image: postgres
     volumes:
       - postgres_volume:/var/lib/postgresql/data/
@@ -22,16 +20,13 @@ services:
     restart: always
     env_file:
       - .env
-    volumes:
-      - upload:/app/upload
     depends_on:
-      - db_audio
+      - db_airport
     networks:
       - net
 
 volumes:
   postgres_volume:
-  upload:
 
 networks:
   net:
