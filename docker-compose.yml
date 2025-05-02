@@ -1,7 +1,5 @@
-version: "3.9"
-
 services:
-  db_audio:
+  db_airport:
     image: postgres
     volumes:
       - postgres_volume:/var/lib/postgresql/data/
@@ -17,21 +15,33 @@ services:
     build:
       dockerfile: ./Dockerfile
     command: ["docker/app.sh"]
+    expose:
+      - 8000
     ports:
       - 8000:8000
     restart: always
     env_file:
       - .env
-    volumes:
-      - upload:/app/upload
     depends_on:
-      - db_audio
+      - db_airport
+    networks:
+      - net
+
+  nginx:
+    container_name: airport-nginx
+    build: ./nginx
+    volumes:
+      - ./var/log/nginx:/var/log/nginx
+      - ./static:/usr/share/nginx/html/static
+    ports:
+      - 80:80
+    depends_on:
+      - app
     networks:
       - net
 
 volumes:
   postgres_volume:
-  upload:
 
 networks:
   net:
