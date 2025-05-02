@@ -15,6 +15,9 @@ createApp({
         const userCity = ref(null);
         const geoLoading = ref(false);
         const geoError = ref(null);
+        const showUserModal = ref(false);
+        const userData = ref(null);
+        const userLoading = ref(false);
         const accessToken = ref('');
         const refreshToken = ref('');
         
@@ -29,6 +32,37 @@ createApp({
 
 
         // Методы
+        const fetchUserData = async () => {
+            userLoading.value = true;
+            try {
+                // Эмуляция API запроса
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // Здесь должен быть реальный запрос:
+                // const response = await fetch('/api/users/me', {
+                //     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                // });
+                // userData.value = await response.json();
+                
+                userData.value = {
+                    name: "Иван Иванов",
+                    email: "ivan@example.com",
+                    // Другие данные с API
+                };
+            } catch (error) {
+                console.error('Ошибка:', error);
+            } finally {
+                userLoading.value = false;
+            }
+        };
+
+        const openUserModal = () => {
+            showUserModal.value = true;
+            if (!userData.value) {
+                fetchUserData();
+            }
+        };
+
         // Отправка геоданных на сервер и получение города
         const sendGeoData = async (latitude, longitude) => {
             try {
@@ -265,6 +299,9 @@ createApp({
 
         const logout = async () => {
             isUser.value = null;
+            userData.value = null;
+            showUserModal.value = false;
+
             localStorage.removeItem('authToken');
 
             const response = await fetch('http://localhost:8000/api/users/logout');
@@ -294,6 +331,10 @@ createApp({
             userCity,
             geoLoading,
             geoError,
+            showUserModal,
+            userData,
+            userLoading,
+            openUserModal,
             showAirportDetails,
             login,
             register,

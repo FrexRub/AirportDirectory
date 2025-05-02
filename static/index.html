@@ -25,13 +25,43 @@
                     </span>
                 </div>
 
-                <div class="user-info" v-if="isUser">
-                    <span>Добро пожаловать , {{ isUser.name }}!</span>
-                    <button @click="logout" class="btn btn-sm btn-outline-light">Выйти</button>
+                <div class="user-info ms-3" v-if="isUser" @click="openUserModal">
+                    <span>Добро пожаловать, {{ isUser.name }}!</span>
+                    <button @click.stop="logout" class="btn btn-sm btn-outline-light">Выйти</button>
                 </div>
                 <button v-else @click="showAuthModal = true" class="btn btn-light">Войти / Зарегистрироваться</button>
             </div>
         </nav>
+
+        <div class="user-modal" v-if="showUserModal" @click.self="showUserModal = false">
+            <div class="user-modal-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Профиль пользователя</h4>
+                    <button @click="showUserModal = false" class="btn-close"></button>
+                </div>
+                
+                <div v-if="userLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="mt-2">Загрузка данных...</p>
+                </div>
+                
+                <div v-else-if="userData">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Имя</label>
+                        <p class="fs-5">{{ userData.name }}</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Email</label>
+                        <p class="fs-5">{{ userData.email }}</p>
+                    </div>
+                    <button @click="showUserModal = false" class="btn btn-danger w-100">Закрыть окно</button>
+                </div>
+                
+                <div v-else class="alert alert-danger">
+                    Не удалось загрузить данные пользователя
+                </div>
+            </div>
+        </div>
 
         <!-- Основной контент -->
         <div class="container">

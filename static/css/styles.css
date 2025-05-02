@@ -14,11 +14,6 @@
 .navbar-brand {
     font-weight: bold;
 }
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
 .auth-form {
     max-width: 400px;
     margin: 0 auto;
@@ -34,4 +29,36 @@
     padding: 5px 10px;
     border-radius: 20px;
     margin-left: 10px;
+}
+.user-info {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background-color 0.2s;
+}
+.user-info:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.user-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+}
+.user-modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
