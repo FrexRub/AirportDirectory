@@ -51,6 +51,7 @@ async def get_info_about_me(
         session: AsyncSession = Depends(get_async_session),
         user: User = Depends(current_user_authorization),
 ):
+    # return UserInfoSchemas(full_name="Sergey", email="user1@mail.ru")
     return await find_user_by_email(session=session, email=user.email)
 
 

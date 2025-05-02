@@ -33,28 +33,30 @@ createApp({
 
         // Методы
         const fetchUserData = async () => {
-            userLoading.value = true;
             try {
-                // Эмуляция API запроса
-                await new Promise(resolve => setTimeout(resolve, 800));
+                userLoading.value = true;
+                error.value = null;
                 
-                // Здесь должен быть реальный запрос:
-                // const response = await fetch('/api/users/me', {
-                //     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-                // });
-                // userData.value = await response.json();
+                // Используем стандартный fetch вместо axios
+                const response = await fetch('http://localhost:8000/api/users/me');
                 
-                userData.value = {
-                    name: "Иван Иванов",
-                    email: "ivan@example.com",
-                    // Другие данные с API
-                };
-            } catch (error) {
-                console.error('Ошибка:', error);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                userData.value = await response.json();
+
+                console.log("Данные полученные с сервера:", {
+                    userData
+                });
+                
+            } catch (err) {
+                error.value = 'Ошибка загрузки данных. ' + err.message;
+                console.error('Ошибка:', err);
             } finally {
                 userLoading.value = false;
             }
-        };
+         };
 
         const openUserModal = () => {
             showUserModal.value = true;
