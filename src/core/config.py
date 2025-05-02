@@ -25,6 +25,9 @@ class SettingConn(BaseSettings):
     postgres_host: str = "localhost"
     postgres_port: int
 
+    REDIS_HOST: str
+    REDIS_PORT: int
+
     SECRET_KEY: str
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
