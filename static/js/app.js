@@ -19,7 +19,6 @@ createApp({
         const userData = ref(null);
         const userLoading = ref(false);
         const accessToken = ref('');
-        const refreshToken = ref('');
         
         // Данные пользователя
         const isUser = ref(null);
@@ -193,16 +192,7 @@ createApp({
                 }
         
                 // Успешный ответ
-                // const { access_token, token_type, user } = await response.json();
-                const { access_token, refresh_token, token_type, user } = await response.json();
-
-                // Выводим в консоль полученные данные
-                // console.log("Данные полученные с сервера:", {
-                //     access_token,
-                //     refresh_token,
-                //     token_type,
-                //     user
-                // });
+                const { access_token, token_type, user } = await response.json();
 
 
                 // Сохранение данных пользователя
@@ -269,8 +259,7 @@ createApp({
             }
 
             // Успешный ответ
-            // const { access_token, token_type, user } = await response.json();
-            const { access_token, refresh_token, token_type, user } = await response.json();
+            const { access_token, token_type, user } = await response.json();
 
 
             // Сохранение данных пользователя

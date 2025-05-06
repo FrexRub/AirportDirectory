@@ -96,7 +96,6 @@ async def user_login(
 
         return OutUserSchemas(
             access_token=access_token,
-            refresh_token=refresh_token,
             token_type="bearer",
             user=UserInfoSchemas(email=data_login.username, full_name=user.full_name),
         )
@@ -151,7 +150,6 @@ async def user_register(
 
         return OutUserSchemas(
             access_token=access_token,
-            refresh_token=refresh_token,
             token_type="bearer",
             user=UserInfoSchemas(email=new_user.email, full_name=new_user.full_name),
         )
