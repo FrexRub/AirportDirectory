@@ -1,11 +1,9 @@
 import logging
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from redis import asyncio as aioredis
+
 import uvicorn
 
 from src.api_v1 import router as api_router
@@ -21,20 +19,7 @@ description = """
     * **Load file**
 """
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # redis для refresh_token
-    redis = aioredis.from_url(
-        f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}/1",
-        encoding="utf8",
-        decode_responses=True,
-    )
-    yield
-
-
 app = FastAPI(
-    lifespan=lifespan,
     title="API_AirportDirectory",
     description=description,
     version="0.1.0",

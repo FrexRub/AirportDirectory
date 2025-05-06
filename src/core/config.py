@@ -48,14 +48,19 @@ class DbSetting(BaseSettings):
     echo: bool = False
 
 
+class RedisSetting(BaseSettings):
+    url: str = f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}"
+
+
 class AuthJWT(BaseModel):
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 15
     refresh_token_expire_minutes: int = 60 * 24 * 7
 
 
 class Setting(BaseSettings):
     db: DbSetting = DbSetting()
+    redis: RedisSetting = RedisSetting()
     auth_jwt: AuthJWT = AuthJWT()
 
 

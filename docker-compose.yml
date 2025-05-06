@@ -11,6 +11,14 @@ services:
     networks:
       - net
 
+  redis_app:
+    image: redis
+    command: --port 6379
+    expose:
+      - 6379
+    networks:
+      - net
+
   app:
     build:
       dockerfile: ./Dockerfile
@@ -24,6 +32,7 @@ services:
       - .env
     depends_on:
       - db_airport
+      - redis_app
     networks:
       - net
 

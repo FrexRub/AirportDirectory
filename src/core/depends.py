@@ -3,6 +3,7 @@ from uuid import UUID
 import json
 from functools import wraps
 from aiocache import Cache
+from redis import Redis
 from fastapi import HTTPException
 
 import jwt
@@ -12,8 +13,8 @@ from fastapi.security import APIKeyCookie
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database import get_async_session
-from src.core.config import COOKIE_NAME, setting_conn
+from src.core.database import get_async_session, get_redis_connection
+from src.core.config import COOKIE_NAME, setting_conn, setting
 from src.core.jwt_utils import decode_jwt, create_jwt
 from src.api_v1.users.crud import get_user_by_id
 from src.models.user import User
@@ -28,14 +29,21 @@ def cache_response(ttl: int = 60, namespace: str = "main"):
     ttl: Time to live for the cache in seconds.
     namespace: Namespace for cache keys in Redis.
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            user_id = kwargs.get('user_id') or args[0]  # Assuming the user ID is the first argument
+            user_id = (
+                kwargs.get("user_id") or args[0]
+            )  # Assuming the user ID is the first argument
             cache_key = f"{namespace}:user:{user_id}"
 
             # cache = Cache.REDIS(endpoint="localhost", port=6379, namespace=namespace)
-            cache = Cache.REDIS(endpoint=setting_conn.REDIS_HOST, port=setting_conn.REDIS_PORT, namespace=namespace)
+            cache = Cache.REDIS(
+                endpoint=setting_conn.REDIS_HOST,
+                port=setting_conn.REDIS_PORT,
+                namespace=namespace,
+            )
 
             # Try to retrieve data from cache
             cached_value = await cache.get(cache_key)
@@ -52,7 +60,9 @@ def cache_response(ttl: int = 60, namespace: str = "main"):
                 raise HTTPException(status_code=500, detail=f"Error caching data: {e}")
 
             return response
+
         return wrapper
+
     return decorator
 
 
@@ -60,6 +70,7 @@ async def current_user_authorization(
     request: Request,
     response: Response,
     token: str = Depends(cookie_scheme),
+    redis: Redis = Depends(get_redis_connection),
     session: AsyncSession = Depends(get_async_session),
 ) -> User:
 
@@ -71,35 +82,36 @@ async def current_user_authorization(
     try:
         payload = await decode_jwt(token)
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
-        )
-        #
-        # # получаем пользователя по ID из сессии
-        # id_user: UUID = UUID(request.session["user"].get("id"))
-        # user: User = await get_user_by_id(session=session, id_user=id_user)
-        #
-        # # проверяем наличие refresh_token
-        # if user.refresh_token is None:
-        #     raise HTTPException(
-        #         status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
-        #     )
-        # # извлекаем данные из refresh_token
-        # try:
-        #     payload = await decode_jwt(user.refresh_token)
-        # except jwt.ExpiredSignatureError:
-        #     # в случае экспирации токена авторизируемся заново
-        #     raise HTTPException(
-        #         status_code=status.HTTP_401_UNAUTHORIZED,
-        #         detail="Session expired. Please login again",
-        #     )
-        # else:
-        #     access_token: str = await create_jwt(
-        #         user=str(user.id),
-        #         expire_minutes=setting.auth_jwt.access_token_expire_minutes,
-        #     )
-        #     response.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True)
-        #     return user
+        # получаем пользователя по ID из сессии
+        id_user: UUID = UUID(request.session["user"].get("id"))
+
+        # получаем refresh_token по id user
+        refresh_token = await redis.get(str(id_user))
+
+        # проверяем наличие refresh_token
+        if refresh_token is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
+            )
+        # извлекаем данные из refresh_token
+        try:
+            payload = await decode_jwt(refresh_token)
+        except jwt.ExpiredSignatureError:
+            # в случае экспирации токена авторизируемся заново
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session expired. Please login again",
+            )
+        else:
+            id_user = UUID(payload["sub"])
+            user: User = await get_user_by_id(session=session, id_user=id_user)
+
+            access_token: str = await create_jwt(
+                user=str(user.id),
+                expire_minutes=setting.auth_jwt.access_token_expire_minutes,
+            )
+            response.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True)
+            return user
 
     else:
         id_user = UUID(payload["sub"])
