@@ -1,5 +1,5 @@
 services:
-  db_airport:
+  db_air:
     image: postgres
     volumes:
       - postgres_volume:/var/lib/postgresql/data/
@@ -31,7 +31,7 @@ services:
     env_file:
       - .env
     depends_on:
-      - db_airport
+      - db_air
       - redis_app
     networks:
       - net
