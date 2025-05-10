@@ -4,22 +4,22 @@ import json
 from functools import wraps
 from aiocache import Cache
 from redis import Redis
-from fastapi import HTTPException
 
 import jwt
-from fastapi import Depends, status, Path, Request, Response
+from fastapi import Depends, status, Path, Request, Response, Security
 from fastapi.exceptions import HTTPException
 from fastapi.security import APIKeyCookie
+from fastapi.security.api_key import APIKeyHeader
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_async_session, get_redis_connection
-from src.core.config import COOKIE_NAME, setting_conn, setting
+from src.core.config import setting_conn, setting
 from src.core.jwt_utils import decode_jwt, create_jwt
 from src.api_v1.users.crud import get_user_by_id
 from src.models.user import User
 
-cookie_scheme = APIKeyCookie(name=COOKIE_NAME)
+api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
 def cache_response(ttl: int = 60, namespace: str = "main"):
@@ -69,10 +69,22 @@ def cache_response(ttl: int = 60, namespace: str = "main"):
 async def current_user_authorization(
     request: Request,
     response: Response,
-    token: str = Depends(cookie_scheme),
+    authorization_header: str = Security(api_key_header),
     redis: Redis = Depends(get_redis_connection),
     session: AsyncSession = Depends(get_async_session),
 ) -> User:
+
+    if authorization_header is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
+        )
+
+    if "Bearer " not in authorization_header:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
+        )
+
+    token = authorization_header.replace("Bearer ", "")
 
     if token is None:
         raise HTTPException(
@@ -116,34 +128,6 @@ async def current_user_authorization(
     else:
         id_user = UUID(payload["sub"])
     return await get_user_by_id(session=session, id_user=id_user)
-
-
-async def current_superuser_user(
-    request: Request,
-    token: str = Depends(cookie_scheme),
-    session: AsyncSession = Depends(get_async_session),
-) -> User:
-    if token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
-        )
-
-    try:
-        payload = await decode_jwt(token)
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
-        )
-
-    id_user = UUID(payload["sub"])
-    user: User = await get_user_by_id(session=session, id_user=id_user)
-
-    if not user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user is not an administrator",
-        )
-    return user
 
 
 async def user_by_id(

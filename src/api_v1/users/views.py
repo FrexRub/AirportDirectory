@@ -21,7 +21,6 @@ from src.api_v1.users.crud import (
     get_user_from_db,
 )
 from src.core.depends import (
-    current_superuser_user,
     current_user_authorization,
     user_by_id,
 )
@@ -87,8 +86,14 @@ async def user_login(
         )
 
         response.set_cookie(
-            key=COOKIE_NAME, value=access_token, httponly=True, samesite="strict"
+            key=COOKIE_NAME,
+            value=access_token,
+            httponly=True,
+            secure=False,  # True в production
+            samesite="lax",
+            path="/",
         )
+
         request.session["user"] = {"family_name": user.full_name, "id": str(user.id)}
         await redis.set(str(user.id), refresh_token)
 
@@ -142,7 +147,12 @@ async def user_register(
         )
 
         response.set_cookie(
-            key=COOKIE_NAME, value=access_token, httponly=True, samesite="strict"
+            key=COOKIE_NAME,
+            value=access_token,
+            httponly=True,
+            secure=False,  # True в production
+            samesite="lax",
+            path="/",
         )
 
         request.session["user"] = {"family_name": user.full_name, "id": str(user.id)}
@@ -159,15 +169,6 @@ async def user_register(
 def logout(request: Request, response: Response):
     response.delete_cookie(COOKIE_NAME)
     request.session.clear()
-
-
-@router.delete("/{id_user}/", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(
-    user: User = Depends(user_by_id),
-    super_user: User = Depends(current_superuser_user),
-    session: AsyncSession = Depends(get_async_session),
-) -> None:
-    await delete_user_db(session=session, user=user)
 
 
 @router.put(
