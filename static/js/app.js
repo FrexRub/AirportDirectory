@@ -35,9 +35,20 @@ createApp({
             try {
                 userLoading.value = true;
                 error.value = null;
+                const token = localStorage.getItem('authToken');
+
+                console.log("Данные jwt token for user:", {
+                    token
+                });
                 
-                // Используем стандартный fetch вместо axios
-                const response = await fetch('http://localhost:8000/api/users/me');
+                const response = await fetch('http://localhost:8000/api/users/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                // const response = await fetch('http://localhost:8000/api/users/me');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -206,6 +217,11 @@ createApp({
                 // Сохранение токена в localStorage
                 localStorage.setItem('authToken', access_token);
 
+                // Cookies.set('access_token', access_token, {
+                //     secure: true,
+                //     sameSite: 'strict'
+                // });
+
                 
                 // Закрытие модального окна и сброс формы
                 showAuthModal.value = false;
@@ -294,6 +310,7 @@ createApp({
             showUserModal.value = false;
 
             localStorage.removeItem('authToken');
+            // Cookies.remove('access_token');
 
             const response = await fetch('http://localhost:8000/api/users/logout');
                 
