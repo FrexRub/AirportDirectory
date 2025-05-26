@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.11-slim
 
 RUN mkdir /app && mkdir /app/docker && mkdir /app/src && mkdir /app/alembic
 WORKDIR /app

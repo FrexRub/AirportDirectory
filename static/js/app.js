@@ -1,7 +1,6 @@
 const { createApp, ref, onMounted } = Vue;
 
 createApp({
-    // delimiters: ['${', '}'], // Меняем синтаксис интерполяции Vue
     setup() {
         // Состояние UI
         const showAuthModal = ref(false);
@@ -42,18 +41,26 @@ createApp({
                 });
                 
                 const response = await fetch('http://localhost:8000/api/users/me', {
-                    method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
                     }
                 });
 
-                // const response = await fetch('http://localhost:8000/api/users/me');
-                
+                // Обработка HTTP ошибок
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorData = await response.json();
+                    
+                    if (response.status === 422) {
+                        // Ошибка валидации данных
+                        throw new Error('Некорректные данные: ' + 
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                    } else if (response.status === 401) {
+                        throw new Error('Необходимо заново авторизоваться');
+                    } else {
+                        throw new Error(errorData.detail || 'Ошибка сервера');
+                    }
                 }
-                
+
                 userData.value = await response.json();
 
                 console.log("Данные полученные с сервера:", {
@@ -216,6 +223,7 @@ createApp({
         
                 // Сохранение токена в localStorage
                 localStorage.setItem('authToken', access_token);
+                localStorage.setItem('Id', user.id);
 
                 // Cookies.set('access_token', access_token, {
                 //     secure: true,
@@ -288,6 +296,7 @@ createApp({
     
             // Сохранение токена в localStorage
             localStorage.setItem('authToken', access_token);
+            localStorage.setItem('Id', user.id);
             
             // Закрытие модального окна и сброс формы
             showAuthModal.value = false;

@@ -16,7 +16,6 @@ from src.core.exceptions import (
 from src.api_v1.users.crud import (
     create_user,
     update_user_db,
-    delete_user_db,
     find_user_by_email,
     get_user_from_db,
 )
@@ -30,6 +29,7 @@ from src.api_v1.users.schemas import (
     OutUserSchemas,
     UserUpdateSchemas,
     UserUpdatePartialSchemas,
+    UserBaseSchemas,
     UserInfoSchemas,
     LoginSchemas,
 )
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 @router.get(
     "/me",
-    response_model=UserInfoSchemas,
+    response_model=UserBaseSchemas,
     status_code=status.HTTP_200_OK,
 )
 async def get_info_about_me(
@@ -102,7 +102,9 @@ async def user_login(
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(email=data_login.username, full_name=user.full_name),
+            user=UserInfoSchemas(
+                id=str(user.id), email=data_login.username, full_name=user.full_name
+            ),
         )
     else:
         raise HTTPException(
@@ -161,7 +163,9 @@ async def user_register(
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(email=new_user.email, full_name=new_user.full_name),
+            user=UserInfoSchemas(
+                id=str(user.id), email=new_user.email, full_name=new_user.full_name
+            ),
         )
 
 

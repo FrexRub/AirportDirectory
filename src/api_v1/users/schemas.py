@@ -42,7 +42,7 @@ class UserCreateSchemas(BaseModel):
 
 
 class UserInfoSchemas(UserBaseSchemas):
-    pass
+    id: str
 
 
 class OutUserSchemas(BaseModel):
