@@ -1,16 +1,11 @@
 from typing import Optional
-from datetime import datetime
-from uuid import uuid4
 import re
 
 from pydantic import (
     BaseModel,
     EmailStr,
-    ConfigDict,
     Field,
     field_validator,
-    field_serializer,
-    UUID4,
 )
 
 PATTERN_PASSWORD = (

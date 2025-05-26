@@ -4,10 +4,12 @@ from logging.config import fileConfig
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+from geoalchemy2 import alembic_helpers  # Для поддержки PostGIS в миграциях
 
 from alembic import context
 from src.core.config import setting
 from src.models import user
+from src.models import airport
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -52,6 +54,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=alembic_helpers.include_object,  # Добавить поддержку PostGIS
     )
 
     with context.begin_transaction():

@@ -1,6 +1,6 @@
 services:
   db_air:
-    image: postgres
+    image: postgres:16-postgis
     volumes:
       - postgres_volume:/var/lib/postgresql/data/
     ports:
