@@ -1,7 +1,8 @@
+import asyncio
 from geopy.geocoders import Nominatim
 
 
-def get_location_info(lat: float, lon: float):
+async def get_location_info(lat: float, lon: float):
     """
         получение информации гео-данным
     Args:
@@ -21,6 +22,8 @@ def get_location_info(lat: float, lon: float):
     """
     geolocator = Nominatim(user_agent="geo_locator")
     location = geolocator.reverse(f"{lat}, {lon}", exactly_one=True)
+
+    await asyncio.sleep(0)
 
     if location:
         address = location.raw.get("address", {})
