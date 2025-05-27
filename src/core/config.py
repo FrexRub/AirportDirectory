@@ -7,6 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).parent.parent.parent
 
+DIR_LOGOTIP = "logotip"
+DIR_FOTO = "foto"
+
 COOKIE_NAME = "bonds_airport"
 
 
