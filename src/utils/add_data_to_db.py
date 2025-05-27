@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pandas as pd
 
-
-from sqlalchemy import select
+from sqlalchemy import select, exists
 from sqlalchemy.engine import Result
+from geoalchemy2.functions import ST_Point
 
 from src.core.database import async_session_maker
 from src.models.airport import Airport
@@ -23,41 +23,49 @@ async def data_from_files_to_db() -> None:
     """
     Утилита добавления данных в бд
     """
-    logger.info("Start copy data to db")
+    logger.info("Start add data to db")
     folder_path: Path = Path(BASE_DIR / "data")
 
     df = pd.read_excel(folder_path / FILE_NAME)
     df = df.dropna(how="any")
 
-    all_data = df.to_dict("records")
-    print("\nДанные в виде списка словарей:")
+    all_data: list[dict[str, any]] = df.to_dict(
+        "records"
+    )  # Данные в виде списка словарей
 
-    for i_data in all_data:
-        for key, val in i_data.items():
-            print("column: ", key, " -> ", "data: ", val)
+    async with async_session_maker() as session:
+        for i_data in all_data:
+            stmt = select(exists().where(Airport.name == i_data["name"]))
+            res: Result = await session.execute(stmt)
+            exist: bool = res.scalar()
 
-    # async with async_session_maker() as session:
-    #     stmt = select(User).filter(User.email == "admin@mycomp.com")
-    #     res: Result = await session.execute(stmt)
-    #     user: User = res.scalar_one_or_none()
-    #     if user is None:
-    #         logger.info("Users creation completed")
-    #         user_admin: UserCreateSchemas = UserCreateSchemas(
-    #             full_name="Петров Иван", email="admin@mycomp.com", password="1qaz!QAZ"
-    #         )
-    #         admin: User = await create_user(session=session, user_data=user_admin)
-    #         admin.is_superuser = True
-    #         await session.commit()
-    #
-    #         user: UserCreateSchemas = UserCreateSchemas(
-    #             full_name="Ветлицкий Сергей",
-    #             email="user1@mycomp.com",
-    #             password="2wsx@WSX",
-    #         )
-    #         res: User = await create_user(session=session, user_data=user)
-    #         logger.info("Users have already been created")
-    #     else:
-    #         logger.info("Users have already been created")
+            if not exist:
+                airport: Airport = Airport(
+                    name=i_data["name"],
+                    full_name=i_data["full_name"],
+                    city=i_data["city"],
+                    address=i_data["address"],
+                    url=i_data["url"],
+                    short_description=i_data["short_description"],
+                    description=i_data["description"],
+                    icao=i_data["icao"],
+                    iata=i_data["iata"],
+                    internal_code=i_data["internal_code"],
+                    latitude=i_data["latitude"],
+                    longitude=i_data["longitude"],
+                    geo=ST_Point(i_data["longitude"], i_data["latitude"], srid=4326),
+                    img_top=i_data["img_top"],
+                    img_airport=i_data["img_airport"],
+                    time_zone=i_data["time_zone"],
+                    online_tablo=i_data["online_tablo"],
+                )
+                session.add(airport)
+                logger.info("Airport named %s added to the database" % i_data["name"])
+            else:
+                logger.info(
+                    "The airport named %s is already in the database" % i_data["name"]
+                )
+        await session.commit()
 
 
 if __name__ == "__main__":
