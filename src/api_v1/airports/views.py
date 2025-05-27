@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from .schemas import GeoDataSchemas
+from .schemas import GeoDataSchemas, AirPortOutShortSchemas
 from src.utils.geo_utils import get_location_info
+from src.models.airport import Airport
+from src.core.database import get_async_session
 
 airports = [
     {
@@ -76,13 +79,15 @@ router = APIRouter(tags=["Airports"])
 
 
 @router.get("/airport")
-def get_airports_all():
+# @router.get("/airport", response_model=list[AirPortOutShortSchemas])
+def get_airports_all(session: AsyncSession = Depends(get_async_session)):
+
     return airports
 
 
 @router.post("/geo-local")
 async def get_city_name(geo_data: GeoDataSchemas):
-    city_info = get_location_info(geo_data.latitude, geo_data.longitude)
+    city_info = await get_location_info(geo_data.latitude, geo_data.longitude)
 
     if city_info:
         return {"city": city_info["city"]}
