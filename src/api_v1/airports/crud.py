@@ -6,12 +6,7 @@ from src.models.airport import Airport
 
 
 async def get_all_airport(session: AsyncSession):
-    stmt = select(
-        Airport.id,
-        Airport.name,
-        Airport.address,
-        Airport.img_top,
-        Airport.short_description,
-    )
+    stmt = select(Airport)
     result: Result = await session.execute(stmt)
-    airoports = result.scalars().all()
+    airports = result.scalars().all()
+    return list(airports)

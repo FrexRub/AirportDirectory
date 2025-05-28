@@ -68,11 +68,11 @@
             <div class="row">
                 <div class="col-md-4" v-for="airport in airports" :key="airport.id">
                     <div class="card airport-card">
-                        <img :src="airport.image" class="card-img-top airport-img" :alt="airport.name">
+                        <img :src="airport.image_url" class="card-img-top airport-img" :alt="airport.name">
                         <div class="card-body">
                             <h5 class="card-title">{{ airport.name }}</h5>
                             <p class="card-text text-muted">{{ airport.address }}</p>
-                            <p class="card-text">{{ airport.description }}</p>
+                            <p class="card-text">{{ airport.short_description }}</p>
                             <button @click="showAirportDetails(airport)" class="btn btn-primary">Подробнее</button>
                         </div>
                     </div>
@@ -133,15 +133,17 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ selectedAirport.name }}</h5>
+                        <h5 class="modal-title">{{ selectedAirport.full_name }}</h5>
                         <button @click="showDetailsModal = false" class="btn-close"></button>
                     </div>
                     <div class="modal-body">
-                        <img :src="selectedAirport.image" class="img-fluid mb-3" :alt="selectedAirport.name">
+                        <img :src="selectedAirport.image_foto_url" class="img-fluid mb-3" :alt="selectedAirport.name">
                         <p><strong>Адрес:</strong> {{ selectedAirport.address }}</p>
                         <p><strong>Описание:</strong> {{ selectedAirport.description }}</p>
                         <p><strong>Код ИКАО:</strong> {{ selectedAirport.icao }}</p>
-                        <p><strong>Пассажиропоток:</strong> {{ selectedAirport.passengers }} человек/год</p>
+                        <p><strong>Код ИАТА:</strong> {{ selectedAirport.iata }}</p>
+                        <p><strong>Внутр. код:</strong> {{ selectedAirport.internal_code }}</p>
+                        <p><strong>Временной пояс:</strong> {{ selectedAirport.time_zone }}</p>
                     </div>
                 </div>
             </div>

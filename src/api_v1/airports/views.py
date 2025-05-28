@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .schemas import GeoDataSchemas, AirPortOutShortSchemas
 from src.utils.geo_utils import get_location_info
 from src.models.airport import Airport
+from src.api_v1.airports.crud import get_all_airport
 from src.core.database import get_async_session
 
 airports = [
@@ -11,8 +12,8 @@ airports = [
         "id": 1,
         "name": "Шереметьево (Москва)",
         "address": "Московская обл., Химки, Международное шоссе, 1",
-        "description": 'Крупнейший международный аэропорт России, главный хаб "Аэрофлота".',
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Sheremetyevo_International_Airport_Terminal_B.jpg/1200px-Sheremetyevo_International_Airport_Terminal_B.jpg",
+        "short_description": 'Крупнейший международный аэропорт России, главный хаб "Аэрофлота".',
+        "img_top": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Sheremetyevo_International_Airport_Terminal_B.jpg/1200px-Sheremetyevo_International_Airport_Terminal_B.jpg",
         "icao": "UUEE",
         "passengers": "40,1 млн",
         "latitude": 55.972642,
@@ -22,8 +23,8 @@ airports = [
         "id": 2,
         "name": "Домодедово (Москва)",
         "address": "Московская обл., Домодедово, Аэропорт",
-        "description": "Один из трёх основных аэропортов Москвы, обслуживает множество международных рейсов.",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Domodedovo_Airport_Terminal.jpg/1200px-Domodedovo_Airport_Terminal.jpg",
+        "short_description": "Один из трёх основных аэропортов Москвы, обслуживает множество международных рейсов.",
+        "img_top": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Domodedovo_Airport_Terminal.jpg/1200px-Domodedovo_Airport_Terminal.jpg",
         "icao": "UUDD",
         "passengers": "28,2 млн",
         "latitude": 55.972642,
@@ -33,8 +34,8 @@ airports = [
         "id": 3,
         "name": "Пулково (Санкт-Петербург)",
         "address": "г. Санкт-Петербург, шоссе Пулковское, 41 лит. ЗА",
-        "description": "Крупнейший аэропорт Северо-Запада России, важный транспортный узел.",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Pulkovo_Airport_Terminal_1.jpg/1200px-Pulkovo_Airport_Terminal_1.jpg",
+        "short_description": "Крупнейший аэропорт Северо-Запада России, важный транспортный узел.",
+        "img_top": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Pulkovo_Airport_Terminal_1.jpg/1200px-Pulkovo_Airport_Terminal_1.jpg",
         "icao": "ULLI",
         "passengers": "18,1 млн",
         "latitude": 55.972642,
@@ -44,8 +45,8 @@ airports = [
         "id": 4,
         "name": "Сочи (Адлер)",
         "address": "Краснодарский край, Адлерский р-н, ул. Мира, 50",
-        "description": "Главный аэропорт черноморского побережья России, важный курортный хаб.",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Sochi_Airport_2014-02-08.jpg/1200px-Sochi_Airport_2014-02-08.jpg",
+        "short_description": "Главный аэропорт черноморского побережья России, важный курортный хаб.",
+        "img_top": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Sochi_Airport_2014-02-08.jpg/1200px-Sochi_Airport_2014-02-08.jpg",
         "icao": "URSS",
         "passengers": "6,8 млн",
         "latitude": 55.972642,
@@ -55,8 +56,8 @@ airports = [
         "id": 5,
         "name": "Кольцово (Екатеринбург)",
         "address": "Свердловская обл., г. Екатеринбург, ул. Бахчиванджи, 1",
-        "description": "Крупнейший аэропорт Урала, важный транспортный узел между Европой и Азией.",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Koltsovo_Airport_Terminal.jpg/1200px-Koltsovo_Airport_Terminal.jpg",
+        "short_description": "Крупнейший аэропорт Урала, важный транспортный узел между Европой и Азией.",
+        "img_top": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Koltsovo_Airport_Terminal.jpg/1200px-Koltsovo_Airport_Terminal.jpg",
         "icao": "USSS",
         "passengers": "6,2 млн",
         "latitude": 55.972642,
@@ -66,8 +67,8 @@ airports = [
         "id": 6,
         "name": "Толмачёво (Новосибирск)",
         "address": "Новосибирская обл., г. Новосибирск, аэропорт Толмачёво",
-        "description": "Крупнейший аэропорт Сибири, важный хаб для транзитных рейсов.",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Tolmachevo_Airport_Terminal.jpg/1200px-Tolmachevo_Airport_Terminal.jpg",
+        "short_description": "Крупнейший аэропорт Сибири, важный хаб для транзитных рейсов.",
+        "img_top": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Tolmachevo_Airport_Terminal.jpg/1200px-Tolmachevo_Airport_Terminal.jpg",
         "icao": "UNNT",
         "passengers": "5,9 млн",
         "latitude": 55.972642,
@@ -78,11 +79,12 @@ airports = [
 router = APIRouter(tags=["Airports"])
 
 
-@router.get("/airport")
-# @router.get("/airport", response_model=list[AirPortOutShortSchemas])
-def get_airports_all(session: AsyncSession = Depends(get_async_session)):
-
-    return airports
+# @router.get("/airport")
+@router.get("/airport", response_model=list[AirPortOutShortSchemas])
+async def get_airports_all(session: AsyncSession = Depends(get_async_session)):
+    airports_db = await get_all_airport(session)
+    # return airports
+    return airports_db
 
 
 @router.post("/geo-local")
