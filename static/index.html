@@ -144,6 +144,14 @@
                         <p><strong>Код ИАТА:</strong> {{ selectedAirport.iata }}</p>
                         <p><strong>Внутр. код:</strong> {{ selectedAirport.internal_code }}</p>
                         <p><strong>Временной пояс:</strong> {{ selectedAirport.time_zone }}</p>
+                        <p v-if="distance">
+                            <i class="bi bi-signpost-split"></i>
+                            <strong>Расстояние до аэропорта:</strong> 
+                            {{ distance.kilometers.toFixed(2) }} км ({{ distance.meters }} м)
+                        </p>
+                        <p v-else>
+                            <strong>Расстояние: </strong> вычисляется...
+                        </p>
                     </div>
                 </div>
             </div>

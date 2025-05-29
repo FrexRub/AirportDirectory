@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends, status
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from geoalchemy2.functions import ST_Point, ST_DistanceSphere
+
 
 from .schemas import GeoDataSchemas, AirPortOutShortSchemas
 from src.utils.geo_utils import get_location_info
-from src.models.airport import Airport
 from src.api_v1.airports.crud import get_all_airport
 from src.core.database import get_async_session
 
@@ -85,8 +89,31 @@ async def get_airports_all(session: AsyncSession = Depends(get_async_session)):
     return airports_db
 
 
+@router.get("/distance")
+async def get_distance(
+    latitude_city: float = Query(..., description="Широта города"),
+    longitude_city: float = Query(..., description="Долгота города"),
+    latitude_airport: float = Query(..., description="Широта аэропорта"),
+    longitude_airport: float = Query(..., description="Долгота аэропорта"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    geo_city = ST_Point(longitude_city, latitude_city, srid=4326)
+    geo_airport = ST_Point(longitude_airport, latitude_airport, srid=4326)
+
+    distance = await session.scalar(
+        select(ST_DistanceSphere(geo_city, geo_airport))
+    )  # результат в метрах
+    distance_km = round(distance / 1000, 2)
+    distance_meters = round(distance, 2)
+
+    return {"distance_meters": distance_meters, "distance_kilometers": distance_km}
+
+
 @router.get("/geo-local")
-async def get_city_name(latitude: float, longitude: float):
+async def get_city_name(
+    latitude: float = Query(..., description="Широта"),
+    longitude: float = Query(..., description="Долгота"),
+):
     city_info = await get_location_info(latitude, longitude)
 
     if city_info:

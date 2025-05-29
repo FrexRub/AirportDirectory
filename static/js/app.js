@@ -20,6 +20,7 @@ createApp({
         const accessToken = ref('');
         const latitude = ref(55.7522);
         const longitude = ref(37.6156);
+        const distance = ref(null);
                          
         // Данные пользователя
         const isUser = ref(null);
@@ -175,7 +176,37 @@ createApp({
             }
         };
 
-        const showAirportDetails = (airport) => {
+        const showAirportDetails = async (airport) => {
+
+                const params = new URLSearchParams({
+                    latitude_city: latitude.value,
+                    longitude_city: longitude.value,
+                    latitude_airport: airport.latitude,
+                    longitude_airport: airport.longitude,
+                });
+
+                const response = await fetch(`http://localhost:8000/api/distance?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                               
+                if (!response.ok) {
+                    throw new Error(`Ошибка: ${response.status}`);
+                }
+                
+                const data = await response.json();
+
+                // Сохраняем данные о расстоянии
+                distance.value = {
+                    meters: data.distance_meters,
+                    kilometers: data.distance_kilometers
+                };
+
+                console.log("Данные о расстоянии:", distance.value);
+
+
             selectedAirport.value = airport;
             showDetailsModal.value = true;
         };
@@ -359,6 +390,7 @@ createApp({
             showUserModal,
             userData,
             userLoading,
+            distance,
             openUserModal,
             showAirportDetails,
             login,
