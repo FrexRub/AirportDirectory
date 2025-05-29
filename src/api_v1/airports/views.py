@@ -79,17 +79,15 @@ airports = [
 router = APIRouter(tags=["Airports"])
 
 
-# @router.get("/airport")
 @router.get("/airport", response_model=list[AirPortOutShortSchemas])
 async def get_airports_all(session: AsyncSession = Depends(get_async_session)):
     airports_db = await get_all_airport(session)
-    # return airports
     return airports_db
 
 
-@router.post("/geo-local")
-async def get_city_name(geo_data: GeoDataSchemas):
-    city_info = await get_location_info(geo_data.latitude, geo_data.longitude)
+@router.get("/geo-local")
+async def get_city_name(latitude: float, longitude: float):
+    city_info = await get_location_info(latitude, longitude)
 
     if city_info:
         return {"city": city_info["city"]}

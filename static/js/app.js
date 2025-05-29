@@ -18,7 +18,9 @@ createApp({
         const userData = ref(null);
         const userLoading = ref(false);
         const accessToken = ref('');
-        
+        const latitude = ref(55.7522);
+        const longitude = ref(37.6156);
+                         
         // Данные пользователя
         const isUser = ref(null);
         const authData = ref({
@@ -87,18 +89,19 @@ createApp({
             try {
                 geoLoading.value = true;
                 geoError.value = null;
-                
-                const response = await fetch('http://localhost:8000/api/geo-local', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        latitude: latitude,
-                        longitude: longitude
-                    })
+
+                const params = new URLSearchParams({
+                    latitude: latitude,
+                    longitude: longitude
                 });
-                
+
+                const response = await fetch(`http://localhost:8000/api/geo-local?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                               
                 if (!response.ok) {
                     throw new Error(`Ошибка: ${response.status}`);
                 }
@@ -123,14 +126,19 @@ createApp({
             
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    latitude.value = position.coords.latitude;
+                    longitude.value = position.coords.longitude;
                     sendGeoData(
-                        position.coords.latitude,
-                        position.coords.longitude
+                        latitude.value,
+                        longitude.value
                     );
                 },
                 (err) => {
-                    geoError.value = "Доступ к геолокации запрещен";
-                    console.warn("Ошибка геолокации:", err.message);
+                    // При отсутствии данных передаем гео данные Москвы (установлены по умолчанию)
+                    sendGeoData(
+                        latitude.value,
+                        longitude.value
+                    );
                 },
                 { 
                     enableHighAccuracy: true,
