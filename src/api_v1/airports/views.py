@@ -1,15 +1,18 @@
-from uuid import UUID
+from typing import Sequence
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from geoalchemy2.functions import ST_Point, ST_DistanceSphere
+from geoalchemy2.types import Geometry
 
 
 from .schemas import GeoDataSchemas, AirPortOutShortSchemas
 from src.utils.geo_utils import get_location_info
-from src.api_v1.airports.crud import get_all_airport
+from src.api_v1.airports.crud import get_all_airport, get_airports_nearest
 from src.core.database import get_async_session
+from src.models.airport import Airport
+
 
 airports = [
     {
@@ -84,8 +87,10 @@ router = APIRouter(tags=["Airports"])
 
 
 @router.get("/airport", response_model=list[AirPortOutShortSchemas])
-async def get_airports_all(session: AsyncSession = Depends(get_async_session)):
-    airports_db = await get_all_airport(session)
+async def get_airports_all(
+    session: AsyncSession = Depends(get_async_session),
+) -> Sequence[Airport]:
+    airports_db: Sequence[Airport] = await get_all_airport(session)
     return airports_db
 
 
@@ -96,17 +101,29 @@ async def get_distance(
     latitude_airport: float = Query(..., description="Широта аэропорта"),
     longitude_airport: float = Query(..., description="Долгота аэропорта"),
     session: AsyncSession = Depends(get_async_session),
-):
-    geo_city = ST_Point(longitude_city, latitude_city, srid=4326)
-    geo_airport = ST_Point(longitude_airport, latitude_airport, srid=4326)
+) -> dict[str, float]:
+    geo_city: Geometry = ST_Point(longitude_city, latitude_city, srid=4326)
+    geo_airport: Geometry = ST_Point(longitude_airport, latitude_airport, srid=4326)
 
-    distance = await session.scalar(
+    distance: float = await session.scalar(
         select(ST_DistanceSphere(geo_city, geo_airport))
     )  # результат в метрах
-    distance_km = round(distance / 1000, 2)
-    distance_meters = round(distance, 2)
+    distance_km: float = round(distance / 1000, 2)
+    distance_meters: float = round(distance, 2)
 
     return {"distance_meters": distance_meters, "distance_kilometers": distance_km}
+
+
+@router.get("/nearest", response_model=list[AirPortOutShortSchemas])
+async def get_nearest_airports(
+    latitude_city: float = Query(..., description="Широта города"),
+    longitude_city: float = Query(..., description="Долгота города"),
+    session: AsyncSession = Depends(get_async_session),
+) -> Sequence[Airport]:
+    airports_nearest: Sequence[Airport] = await get_airports_nearest(
+        session=session, latitude_city=latitude_city, longitude_city=longitude_city
+    )
+    return airports_nearest
 
 
 @router.get("/geo-local")
