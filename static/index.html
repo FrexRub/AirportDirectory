@@ -68,7 +68,11 @@
             <div class="row">
                 <div class="col-md-4" v-for="airport in airports" :key="airport.id">
                     <div class="card airport-card-main">
-                        <img :src="airport.image_url" class="card-img-top airport-img-main" :alt="airport.name">
+                        <img 
+                            :src="`./img/logotip/${airport.img_top}`" 
+                            class="card-img-top airport-img-main" 
+                            :alt="airport.name"
+                        >
                         <div class="card-body">
                             <h5 class="card-title">{{ airport.name }}</h5>
                             <p class="card-text text-muted">{{ airport.address }}</p>
@@ -151,15 +155,15 @@
             </div>
         
             <div class="airport-detail-content">
-                <img :src="selectedAirport.image_foto_url" 
+                <img :src="`./img/foto/${selectedAirport.img_airport}`" 
                     class="airport-detail-image" 
-                    :alt="selectedAirport.name">
+                    :alt="selectedAirport.name"
+                >
                 <div class="airport-description">
                     <p>{{ selectedAirport.description }}</p>
                     <p>{{ selectedAirport.address }}</p>
                     <a href="https://aaq.aero/board/" target="_blank" class="online-board-link">Онлайн-табло аэропорта</a>
                 </div>
-
 
                 <footer class="card-footer">
                     <div class="info-column">
