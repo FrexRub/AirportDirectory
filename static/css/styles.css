@@ -1,15 +1,13 @@
-.airport-card {
-    transition: transform 0.3s;
-    margin-bottom: 20px;
-    height: 100%;
-}
-.airport-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-.airport-img {
-    height: 200px;
-    object-fit: cover;
+@import "airport.css";
+
+body {
+    background-image: url('../img/back.webp');
+    background-size: cover;       /* Растянуть на весь экран */
+    background-position: center;  /* Центрировать изображение */
+    background-repeat: no-repeat; /* Не повторять */
+    background-attachment: fixed; /* Фиксированный фон */
+    margin: 0;
+    height: 100vh;
 }
 .navbar-brand {
     font-weight: bold;
@@ -18,7 +16,7 @@
     max-width: 400px;
     margin: 0 auto;
     padding: 20px;
-    background: #f8f9fa;
+    background: #14a932;
     border-radius: 8px;
 }
 .modal {
@@ -62,3 +60,4 @@
     max-width: 400px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
+

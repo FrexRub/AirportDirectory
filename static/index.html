@@ -67,8 +67,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4" v-for="airport in airports" :key="airport.id">
-                    <div class="card airport-card">
-                        <img :src="airport.image_url" class="card-img-top airport-img" :alt="airport.name">
+                    <div class="card airport-card-main">
+                        <img :src="airport.image_url" class="card-img-top airport-img-main" :alt="airport.name">
                         <div class="card-body">
                             <h5 class="card-title">{{ airport.name }}</h5>
                             <p class="card-text text-muted">{{ airport.address }}</p>
@@ -129,31 +129,57 @@
         </div>
 
         <!-- Модальное окно с деталями аэропорта -->
-        <div class="modal" :class="{ 'show': showDetailsModal }" style="display: block;" v-if="showDetailsModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ selectedAirport.full_name }}</h5>
-                        <button @click="showDetailsModal = false" class="btn-close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <img :src="selectedAirport.image_foto_url" class="img-fluid mb-3" :alt="selectedAirport.name">
-                        <p><strong>Адрес:</strong> {{ selectedAirport.address }}</p>
-                        <p><strong>Описание:</strong> {{ selectedAirport.description }}</p>
-                        <p><strong>Код ИКАО:</strong> {{ selectedAirport.icao }}</p>
-                        <p><strong>Код ИАТА:</strong> {{ selectedAirport.iata }}</p>
-                        <p><strong>Внутр. код:</strong> {{ selectedAirport.internal_code }}</p>
-                        <p><strong>Временной пояс:</strong> {{ selectedAirport.time_zone }}</p>
-                        <p v-if="distance">
-                            <i class="bi bi-signpost-split"></i>
-                            <strong>Расстояние до аэропорта:</strong> 
-                            {{ distance.kilometers.toFixed(2) }} км.
-                        </p>
-                        <p v-else>
-                            <strong>Расстояние: </strong> вычисляется...
-                        </p>
-                    </div>
+        <div class="airport-detail" v-if="showDetailsModal">
+            <div class="airport-detail-header">
+                <h2>{{ selectedAirport.full_name }}</h2>
+                <span class="iata-code">{{ selectedAirport.iata }}</span>
+                <button @click="showDetailsModal = false" class="btn-close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+
+            </div>
+            <div class="airport-detail-info">
+                <p><strong>Временной пояс:</strong> {{ selectedAirport.time_zone }}</p>
+                <p v-if="distance" class="distance-info">
+                    <i class="bi bi-signpost-split"></i>
+                    <strong>Расстояние до аэропорта:</strong> 
+                    {{ distance.kilometers.toFixed(2) }} км.
+                </p>
+                <p v-else class="distance-info">
+                    <strong>Расстояние: </strong> вычисляется...
+                </p>
+            </div>
+        
+            <div class="airport-detail-content">
+                <img :src="selectedAirport.image_foto_url" 
+                    class="airport-detail-image" 
+                    :alt="selectedAirport.name">
+                <div class="airport-description">
+                    <p>{{ selectedAirport.description }}</p>
+                    <p>{{ selectedAirport.address }}</p>
+                    <a href="https://aaq.aero/board/" target="_blank" class="online-board-link">Онлайн-табло аэропорта</a>
                 </div>
+
+
+                <footer class="card-footer">
+                    <div class="info-column">
+                        <h3>Коды аэропорта</h3>
+                        <ul>
+                            <li><strong>IATA:</strong> {{ selectedAirport.iata }}</li>
+                            <li><strong>ICAO:</strong> {{ selectedAirport.icao }}</li>
+                            <li><strong>Внутренний:</strong> {{ selectedAirport.internal_code }}</li>
+                        </ul>
+                    </div>
+                    <div class="info-column">
+                        <h3>Ближайшие аэропорты</h3>
+                        <ul>
+                            <li>Геленджик (GDZ) - ~70 км</li>
+                            <li>Краснодар (Пашковский, KRR) - ~170 км</li>
+                            <li>Сочи (Адлер, AER) - ~300 км</li>
+                        </ul>
+                    </div>
+                </footer>
+
             </div>
         </div>
     </div>
