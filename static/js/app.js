@@ -11,6 +11,7 @@ createApp({
         const loading = ref(true);
         const error = ref(null);
         const airports = ref([]);
+        const airports_nearest = ref([])
         const userCity = ref(null);
         const geoLoading = ref(false);
         const geoError = ref(null);
@@ -177,7 +178,7 @@ createApp({
         };
 
         const showAirportDetails = async (airport) => {
-
+                // Вычисляем расстояние от города(гео-точки пользователя) до выбранного аэропорта 
                 const params = new URLSearchParams({
                     latitude_city: latitude.value,
                     longitude_city: longitude.value,
@@ -206,6 +207,28 @@ createApp({
 
                 console.log("Данные о расстоянии:", distance.value);
 
+                // Вычисляем расстояние от выбранного аэропорта() до ближайших 3х
+                const params_airport = new URLSearchParams({
+                    latitude: airport.latitude,
+                    longitude: airport.longitude,
+                    limit: 3,
+                });
+
+                const response_nearest = await fetch(`http://localhost:8000/api/nearest?${params_airport.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                               
+                if (!response_nearest.ok) {
+                    throw new Error(`Ошибка: ${response_nearest.status}`);
+                }
+                
+                const data_nearest = await response_nearest.json();
+
+                airports_nearest.value = data_nearest;
+                console.log("Данные об аэропортах:", airports_nearest.value);
 
             selectedAirport.value = airport;
             showDetailsModal.value = true;
@@ -391,6 +414,7 @@ createApp({
             userData,
             userLoading,
             distance,
+            airports_nearest,
             openUserModal,
             showAirportDetails,
             login,

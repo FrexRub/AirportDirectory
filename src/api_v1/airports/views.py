@@ -7,7 +7,7 @@ from geoalchemy2.functions import ST_Point, ST_DistanceSphere
 from geoalchemy2.types import Geometry
 
 
-from .schemas import GeoDataSchemas, AirPortOutShortSchemas
+from .schemas import GeoDataSchemas, AirPortOutShortSchemas, AirPortOutGeoSchemas
 from src.utils.geo_utils import get_location_info
 from src.api_v1.airports.crud import get_all_airport, get_airports_nearest
 from src.core.database import get_async_session
@@ -114,16 +114,27 @@ async def get_distance(
     return {"distance_meters": distance_meters, "distance_kilometers": distance_km}
 
 
-@router.get("/nearest", response_model=list[AirPortOutShortSchemas])
+@router.get("/nearest", response_model=list[AirPortOutGeoSchemas])
 async def get_nearest_airports(
-    latitude_city: float = Query(..., description="Широта города"),
-    longitude_city: float = Query(..., description="Долгота города"),
+    latitude: float = Query(..., description="Широта"),
+    longitude: float = Query(..., description="Долгота"),
+    limit: int = 3,
     session: AsyncSession = Depends(get_async_session),
 ) -> Sequence[Airport]:
-    airports_nearest: Sequence[Airport] = await get_airports_nearest(
-        session=session, latitude_city=latitude_city, longitude_city=longitude_city
+    airports_nearest: list[AirPortOutGeoSchemas] = await get_airports_nearest(
+        session=session,
+        latitude=latitude,
+        longitude=longitude,
+        limit=limit,
     )
     return airports_nearest
+    # airports_nearest: Sequence[Airport] = await get_airports_nearest(
+    #     session=session,
+    #     latitude=latitude,
+    #     longitude=longitude,
+    #     limit=limit,
+    # )
+    # return airports_nearest
 
 
 @router.get("/geo-local")
