@@ -36,25 +36,24 @@ async def get_airports_nearest(
             cast(
                 ST_DistanceSphere(
                     geo,
-                    Airport.geo,  # Assuming Airport has 'geo' column of geometry type
+                    Airport.geo,
                 ),
                 Float,
             ).label("distance"),
         )
         .order_by("distance")
-        .limit(limit)
+        .limit(limit + 1)
     )
 
     # stmt = select(Airport).order_by(ST_DistanceSphere(geo, Airport.geo)).limit(limit)
-    result: Result = await session.execute(stmt)
     # airports: Sequence[Airport] = result.scalars().all()
+    result: Result = await session.execute(stmt)
 
     airports_nearest = list()
     for airport, distance in result:
-        print(airport, distance)
-        # data = AirPortOutGeoSchemas.model_validate(airport)
-        # data.distance = distance
-        # airports_nearest.append(data)
+        if (airport.latitude != latitude) and (airport.longitude != longitude):
+            data = AirPortOutGeoSchemas(**airport.__dict__)
+            data.distance: float = round(distance / 1000, 2)
+            airports_nearest.append(data)
 
-    return airports_nearest
-    # return airports
+    return airports_nearest[:limit]

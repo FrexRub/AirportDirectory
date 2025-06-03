@@ -8,8 +8,15 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 .airport-img-main {
-    height: 200px;
-    object-fit: cover;
+    width: 200px;           /* Фиксированная ширина */
+    height: 180px;          /* Фиксированная высота */
+    object-fit: cover;      /* Заполнение области с сохранением пропорций */
+    border-radius: 8px;
+    margin-right: 20px;     /* Отступ справа */
+    margin-bottom: 15px;    /* Отступ снизу */
+    flex-shrink: 0;         /* Запрещаем уменьшение размера */
+    /* height: 200px;
+    object-fit: cover; */
 }
 /* Основной контейнер */
 .airport-detail {

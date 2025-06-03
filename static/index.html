@@ -70,7 +70,7 @@
                     <div class="card airport-card-main">
                         <img 
                             :src="`./img/logotip/${airport.img_top}`" 
-                            class="card-img-top airport-img-main" 
+                            class="img-fluid mb-3 w-50"
                             :alt="airport.name"
                         >
                         <div class="card-body">
@@ -162,7 +162,12 @@
                 <div class="airport-description">
                     <p>{{ selectedAirport.description }}</p>
                     <p>{{ selectedAirport.address }}</p>
-                    <a href="https://aaq.aero/board/" target="_blank" class="online-board-link">Онлайн-табло аэропорта</a>
+                    <a 
+                        :href="selectedAirport.url" 
+                        target="_blank" 
+                        class="online-board-link">
+                        Онлайн-табло аэропорта
+                    </a>
                 </div>
 
                 <footer class="card-footer">
@@ -176,10 +181,8 @@
                     </div>
                     <div class="info-column">
                         <h3>Ближайшие аэропорты</h3>
-                        <ul>
-                            <li>Геленджик (GDZ) - ~70 км</li>
-                            <li>Краснодар (Пашковский, KRR) - ~170 км</li>
-                            <li>Сочи (Адлер, AER) - ~300 км</li>
+                        <ul v-for="airport in nearestdAirport" :key="airport.id">
+                            <li>{{ airport.name }}({{ airport.city }}) {{ airport.distance }} км.</li>
                         </ul>
                     </div>
                 </footer>

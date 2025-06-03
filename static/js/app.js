@@ -7,6 +7,7 @@ createApp({
         const showDetailsModal = ref(false);
         const isLoginForm = ref(true);
         const selectedAirport = ref(null);
+        const nearestdAirport = ref(null);
         const passwordError = ref('');
         const loading = ref(true);
         const error = ref(null);
@@ -178,57 +179,58 @@ createApp({
         };
 
         const showAirportDetails = async (airport) => {
-                // Вычисляем расстояние от города(гео-точки пользователя) до выбранного аэропорта 
-                const params = new URLSearchParams({
-                    latitude_city: latitude.value,
-                    longitude_city: longitude.value,
-                    latitude_airport: airport.latitude,
-                    longitude_airport: airport.longitude,
-                });
+            // Вычисляем расстояние от города(гео-точки пользователя) до выбранного аэропорта 
+            const params = new URLSearchParams({
+                latitude_city: latitude.value,
+                longitude_city: longitude.value,
+                latitude_airport: airport.latitude,
+                longitude_airport: airport.longitude,
+            });
 
-                const response = await fetch(`http://localhost:8000/api/distance?${params.toString()}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                               
-                if (!response.ok) {
-                    throw new Error(`Ошибка: ${response.status}`);
+            const response = await fetch(`http://localhost:8000/api/distance?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
                 }
-                
-                const data = await response.json();
+            });
+                            
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+            
+            const data = await response.json();
 
-                // Сохраняем данные о расстоянии
-                distance.value = {
-                    meters: data.distance_meters,
-                    kilometers: data.distance_kilometers
-                };
+            // Сохраняем данные о расстоянии
+            distance.value = {
+                meters: data.distance_meters,
+                kilometers: data.distance_kilometers
+            };
 
-                console.log("Данные о расстоянии:", distance.value);
+            console.log("Данные о расстоянии:", distance.value);
 
-                // Вычисляем расстояние от выбранного аэропорта() до ближайших 3х
-                const params_airport = new URLSearchParams({
-                    latitude: airport.latitude,
-                    longitude: airport.longitude,
-                    limit: 3,
-                });
+            // Вычисляем расстояние от выбранного аэропорта() до ближайших 3х
+            const params_airport = new URLSearchParams({
+                latitude: airport.latitude,
+                longitude: airport.longitude,
+                limit: 3,
+            });
 
-                const response_nearest = await fetch(`http://localhost:8000/api/nearest?${params_airport.toString()}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                               
-                if (!response_nearest.ok) {
-                    throw new Error(`Ошибка: ${response_nearest.status}`);
+            const response_nearest = await fetch(`http://localhost:8000/api/nearest?${params_airport.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
                 }
-                
-                const data_nearest = await response_nearest.json();
+            });
+                            
+            if (!response_nearest.ok) {
+                throw new Error(`Ошибка: ${response_nearest.status}`);
+            }
 
-                airports_nearest.value = data_nearest;
-                console.log("Данные об аэропортах:", airports_nearest.value);
+            const data_nearest = await response_nearest.json();
+            nearestdAirport.value = data_nearest;
+            
+            // airports_nearest.value = data_nearest;
+            // console.log("Данные об аэропортах:", airports_nearest.value);
 
             selectedAirport.value = airport;
             showDetailsModal.value = true;
@@ -401,6 +403,7 @@ createApp({
             showDetailsModal,
             isLoginForm,
             selectedAirport,
+            nearestdAirport,
             isUser,
             authData,
             passwordError,

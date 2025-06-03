@@ -19,6 +19,7 @@ class AirPortOutShortSchemas(BaseModel):
     full_name: str
     city: str
     address: str
+    url: str
     short_description: str
     description: str
     icao: str
@@ -49,6 +50,7 @@ class AirPortOutGeoSchemas(BaseModel):
     full_name: str
     city: str
     address: str
+    url: str
     short_description: str
     description: str
     icao: str

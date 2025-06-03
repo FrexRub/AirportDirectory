@@ -128,13 +128,6 @@ async def get_nearest_airports(
         limit=limit,
     )
     return airports_nearest
-    # airports_nearest: Sequence[Airport] = await get_airports_nearest(
-    #     session=session,
-    #     latitude=latitude,
-    #     longitude=longitude,
-    #     limit=limit,
-    # )
-    # return airports_nearest
 
 
 @router.get("/geo-local")
