@@ -23,14 +23,10 @@ async def get_redis_connection():
     yield redis
 
 
-# redis_cash = aioredis.from_url(
-#     setting.redis.url + "/1",
-#     encoding="utf8",
-#     decode_responses=True,
-# )
-#
-# redis_db = aioredis.from_url(
-#     setting.redis.url,
-#     encoding="utf8",
-#     decode_responses=True,
-# )
+async def get_cache_connection():
+    redis_cash = aioredis.from_url(
+        setting.redis.url + "/1",
+        encoding="utf8",
+        decode_responses=True,
+    )
+    yield redis_cash
