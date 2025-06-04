@@ -157,7 +157,7 @@ createApp({
                 error.value = null;
                 
                 // Используем стандартный fetch вместо axios
-                const response = await fetch('http://localhost:8000/api/airport');
+                const response = await fetch('http://localhost:8000/api/airports');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -179,12 +179,32 @@ createApp({
         };
 
         const showAirportDetails = async (airport) => {
+            // получение данных об аэропрте 
+            const params_by_id = new URLSearchParams({
+                id: airport.id,
+            });
+
+            const response_by_id = await fetch(`http://localhost:8000/api/airport?${params_by_id.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+                            
+            if (!response_by_id.ok) {
+                throw new Error(`Ошибка: ${response_by_id.status}`);
+            }
+            
+            const airport_by_id = await response_by_id.json();
+
+            console.log("Данные об аэропрте:", airport_by_id);
+
             // Вычисляем расстояние от города(гео-точки пользователя) до выбранного аэропорта 
             const params = new URLSearchParams({
                 latitude_city: latitude.value,
                 longitude_city: longitude.value,
-                latitude_airport: airport.latitude,
-                longitude_airport: airport.longitude,
+                latitude_airport: airport_by_id.latitude,
+                longitude_airport: airport_by_id.longitude,
             });
 
             const response = await fetch(`http://localhost:8000/api/distance?${params.toString()}`, {
@@ -210,8 +230,8 @@ createApp({
 
             // Вычисляем расстояние от выбранного аэропорта() до ближайших 3х
             const params_airport = new URLSearchParams({
-                latitude: airport.latitude,
-                longitude: airport.longitude,
+                latitude: airport_by_id.latitude,
+                longitude: airport_by_id.longitude,
                 limit: 3,
             });
 
@@ -232,7 +252,7 @@ createApp({
             // airports_nearest.value = data_nearest;
             // console.log("Данные об аэропортах:", airports_nearest.value);
 
-            selectedAirport.value = airport;
+            selectedAirport.value = airport_by_id;
             showDetailsModal.value = true;
         };
 

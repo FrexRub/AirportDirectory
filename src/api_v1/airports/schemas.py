@@ -16,6 +16,14 @@ class GeoDataSchemas(BaseModel):
 class AirPortOutShortSchemas(BaseModel):
     id: UUID4 = Field(default_factory=uuid4)
     name: str
+    address: str
+    short_description: str
+    img_top: str = Field(description="Имя файла логотипа аэропорта")
+
+
+class AirPortOutAllSchemas(BaseModel):
+    id: UUID4 = Field(default_factory=uuid4)
+    name: str
     full_name: str
     city: str
     address: str

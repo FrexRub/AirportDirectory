@@ -1,17 +1,20 @@
-from typing import Sequence
+from typing import Sequence, Any
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
+from fastapi.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from geoalchemy2.functions import ST_Point, ST_DistanceSphere
 from geoalchemy2.types import Geometry
 
 
-from .schemas import GeoDataSchemas, AirPortOutShortSchemas, AirPortOutGeoSchemas
+from .schemas import AirPortOutAllSchemas, AirPortOutShortSchemas, AirPortOutGeoSchemas
 from src.utils.geo_utils import get_location_info
-from src.api_v1.airports.crud import get_all_airport, get_airports_nearest
+from src.api_v1.airports.crud import get_all_airport, get_airports_nearest, get_airport
 from src.core.database import get_async_session
 from src.models.airport import Airport
+from src.core.exceptions import ExceptDB, NotFindData
 
 
 airports = [
@@ -86,12 +89,32 @@ airports = [
 router = APIRouter(tags=["Airports"])
 
 
-@router.get("/airport", response_model=list[AirPortOutShortSchemas])
+@router.get("/airports", response_model=list[AirPortOutShortSchemas])
 async def get_airports_all(
     session: AsyncSession = Depends(get_async_session),
-) -> Sequence[Airport]:
-    airports_db: Sequence[Airport] = await get_all_airport(session)
+) -> list[AirPortOutShortSchemas]:
+    airports_db: list[tuple[Any]] = await get_all_airport(session)
     return airports_db
+
+
+@router.get("/airport", response_model=AirPortOutAllSchemas)
+async def get_airport_by_id(
+    id: UUID,
+    session: AsyncSession = Depends(get_async_session),
+) -> Sequence[Airport]:
+    try:
+        airport = await get_airport(session=session, id_airport=id)
+    except ExceptDB as exp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{exp}",
+        )
+    except NotFindData as exp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{exp}",
+        )
+    return airport
 
 
 @router.get("/distance")

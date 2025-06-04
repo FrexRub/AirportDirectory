@@ -1,6 +1,8 @@
-from typing import Sequence
+from typing import Any
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, Float
 from sqlalchemy.engine import Result
 from sqlalchemy.sql.expression import cast
@@ -8,13 +10,30 @@ from geoalchemy2.functions import ST_Point, ST_DistanceSphere
 
 from src.models.airport import Airport
 from .schemas import AirPortOutGeoSchemas
+from src.core.exceptions import ExceptDB, NotFindData
 
 
-async def get_all_airport(session: AsyncSession) -> Sequence[Airport]:
-    stmt = select(Airport)
+async def get_all_airport(session: AsyncSession) -> list[tuple[Any]]:
+    stmt = select(
+        Airport.id,
+        Airport.name,
+        Airport.address,
+        Airport.img_top,
+        Airport.short_description,
+    )
     result: Result = await session.execute(stmt)
-    airports: Sequence[Airport] = result.scalars().all()
+    airports: list[tuple[Any]] = result.all()
     return airports
+
+
+async def get_airport(session: AsyncSession, id_airport: UUID) -> Airport:
+    try:
+        airport: Airport = await session.get(Airport, id_airport)
+    except SQLAlchemyError as exc:
+        raise ExceptDB(exc)
+    if airport is None:
+        raise NotFindData("Airport by id not found")
+    return airport
 
 
 async def get_airports_nearest(

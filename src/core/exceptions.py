@@ -15,6 +15,10 @@ class NotFindUser(Exception):
     pass
 
 
+class NotFindData(Exception):
+    pass
+
+
 class ExceptDB(Exception):
     pass
 
