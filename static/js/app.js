@@ -1,4 +1,4 @@
-const { createApp, ref, onMounted } = Vue;
+const { createApp, ref, onMounted, computed } = Vue;
 
 createApp({
     setup() {
@@ -9,9 +9,6 @@ createApp({
         const selectedAirport = ref(null);
         const nearestdAirport = ref(null);
         const passwordError = ref('');
-        const loading = ref(true);
-        const error = ref(null);
-        const airports = ref([]);
         const airports_nearest = ref([])
         const userCity = ref(null);
         const geoLoading = ref(false);
@@ -23,6 +20,11 @@ createApp({
         const latitude = ref(55.7522);
         const longitude = ref(37.6156);
         const distance = ref(null);
+        const airports = ref({ items: [], total: 0, page: 1, size: 10 });
+        const currentPage = ref(1);
+        const totalPages = ref(1);
+        const loading = ref(false);
+        const error = ref(null);
                          
         // Данные пользователя
         const isUser = ref(null);
@@ -150,25 +152,32 @@ createApp({
             );
         };
 
+        // Вычисляем общее количество страниц
+        // const totalPages = computed(() => {
+        //     return airports.value.total > 0 
+        //         ? Math.ceil(airports.value.total / airports.value.size)
+        //         : 1; 
+        // });
 
-        const fetchAirports = async () => {
+        const fetchAirports = async (page = 1) => {
             try {
                 loading.value = true;
                 error.value = null;
                 
                 // Используем стандартный fetch вместо axios
-                const response = await fetch('http://localhost:8000/api/airports');
+                const response = await fetch(`http://localhost:8000/api/airports?page=${page}&size=6`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                airports.value = data;
+                airports.value = data.items;
+                currentPage.value = data.page;
+                totalPages.value = data.pages;
 
-                console.log("Данные полученные с сервера:", {
-                    data
-                });
+                console.log("Данные полученные с сервера:", { data });
+                console.log('Current:', currentPage.value, 'Total:', totalPages.value, 'Items:', data.items.length)
                 
             } catch (err) {
                 error.value = 'Ошибка загрузки данных. ' + err.message;
@@ -177,6 +186,26 @@ createApp({
                 loading.value = false;
             }
         };
+
+        // Переход на предыдущую страницу
+        const prevPage = () => {
+            if (currentPage.value > 1) {
+                fetchAirports(currentPage.value - 1);
+            }
+        };
+
+        // Переход на следующую страницу
+        const nextPage = () => {
+            if (currentPage.value < totalPages.value) {
+                fetchAirports(currentPage.value + 1);
+            }
+        };
+
+        // Переход на конкретную страницу
+        const goToPage = (page) => {
+            fetchAirports(page);
+        };
+
 
         const showAirportDetails = async (airport) => {
             // получение данных об аэропрте 
@@ -415,7 +444,7 @@ createApp({
         // Загружаем данные сразу при запуске
         onMounted(() => {
             getUserLocation();
-            fetchAirports();
+            fetchAirports(1);
         });  
 
         return {
@@ -438,6 +467,10 @@ createApp({
             userLoading,
             distance,
             airports_nearest,
+            currentPage,
+            totalPages,
+            prevPage,
+            nextPage,
             openUserModal,
             showAirportDetails,
             login,

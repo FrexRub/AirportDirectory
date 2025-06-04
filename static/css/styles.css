@@ -61,3 +61,35 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
+/* Адаптивная пагинация в навбаре */
+.pagination-container {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 0.25rem;
+}
+
+.page-link {
+    background: transparent !important;
+    border: none !important;
+    color: white !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+}
+
+.page-item.active .page-link {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Адаптация под мобильные устройства */
+@media (max-width: 768px) {
+    .pagination-container {
+        display: none; /* Скрываем на маленьких экранах */
+    }
+    
+    .user-info span {
+        display: none; /* Скрываем текст приветствия */
+    }
+}

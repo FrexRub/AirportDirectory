@@ -2,6 +2,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
 from starlette.middleware.sessions import SessionMiddleware
 
 import uvicorn
@@ -37,6 +38,8 @@ app.add_middleware(
 app.add_middleware(SessionMiddleware, secret_key=setting_conn.SECRET_KEY)
 
 app.include_router(router=api_router)
+
+add_pagination(app)
 
 configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)

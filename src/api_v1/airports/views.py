@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.exceptions import HTTPException
+from fastapi_pagination import Page, paginate
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from geoalchemy2.functions import ST_Point, ST_DistanceSphere
@@ -89,12 +90,12 @@ airports = [
 router = APIRouter(tags=["Airports"])
 
 
-@router.get("/airports", response_model=list[AirPortOutShortSchemas])
+@router.get("/airports", response_model=Page[AirPortOutShortSchemas])
 async def get_airports_all(
     session: AsyncSession = Depends(get_async_session),
 ) -> list[AirPortOutShortSchemas]:
     airports_db: list[tuple[Any]] = await get_all_airport(session)
-    return airports_db
+    return paginate(airports_db)
 
 
 @router.get("/airport", response_model=AirPortOutAllSchemas)
