@@ -46,7 +46,7 @@ async def get_airports_all(
                 "short_description": short_description,
             }
             await db_cache.rpush("airports", json.dumps(airport_data))
-            logger.info("Write in cache info about airports")
+        logger.info("Write in cache info about airports")
     else:
         logger.info("Read from cache info about airports")
         all_airports: list[str] = await db_cache.lrange("airports", 0, -1)
@@ -55,7 +55,6 @@ async def get_airports_all(
             airport_dict: dict[Any] = json.loads(airport)
             airport_dict["id"] = UUID(airport_dict["id"])
             airports_db.append(AirPortOutShortSchemas(**airport_dict))
-        print("No cache", airports_db)
     return paginate(airports_db)
 
 
@@ -115,17 +114,31 @@ async def get_distance(
 
 @router.get("/nearest", response_model=list[AirPortOutGeoSchemas])
 async def get_nearest_airports(
-    latitude: float = Query(..., description="Широта"),
-    longitude: float = Query(..., description="Долгота"),
+    latitude: float = Query(..., description="Широта города/аэропорта"),
+    longitude: float = Query(..., description="Долгота города/аэропорта"),
     limit: int = 3,
     session: AsyncSession = Depends(get_async_session),
+    db_cache=Depends(get_cache_connection),
 ) -> Sequence[Airport]:
-    airports_nearest: list[AirPortOutGeoSchemas] = await get_airports_nearest(
-        session=session,
-        latitude=latitude,
-        longitude=longitude,
-        limit=limit,
-    )
+    redis_key: str = f"{longitude}:{latitude}"
+    all_airports = await db_cache.lrange(redis_key, 0, -1)
+    if not all_airports:
+        airports_nearest: list[AirPortOutGeoSchemas] = await get_airports_nearest(
+            session=session,
+            latitude=latitude,
+            longitude=longitude,
+            limit=limit,
+        )
+        for airport in airports_nearest:
+            await db_cache.rpush(redis_key, airport.model_dump_json())
+        logger.info("Write in cache info about airports nearest")
+    else:
+        logger.info("Read from cache info about airports nearest")
+        all_airports: list[str] = await db_cache.lrange(redis_key, 0, -1)
+        airports_nearest: list[AirPortOutGeoSchemas] = list()
+        for airport in all_airports:
+            airport_dict: dict[Any] = json.loads(airport)
+            airports_nearest.append(AirPortOutGeoSchemas(**airport_dict))
     return airports_nearest
 
 
