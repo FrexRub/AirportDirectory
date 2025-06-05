@@ -1,26 +1,25 @@
-from typing import Sequence, Any
-from uuid import UUID
 import json
 import logging
+from typing import Any, Sequence
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.exceptions import HTTPException
 from fastapi_pagination import Page, paginate
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from geoalchemy2.functions import ST_Point, ST_DistanceSphere
+from geoalchemy2.functions import ST_DistanceSphere, ST_Point
 from geoalchemy2.types import Geometry
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from .schemas import AirPortOutAllSchemas, AirPortOutShortSchemas, AirPortOutGeoSchemas
-from src.utils.geo_utils import get_location_info
-from src.api_v1.airports.crud import get_all_airport, get_airports_nearest, get_airport
-from src.core.database import get_async_session, get_cache_connection
-from src.models.airport import Airport
-from src.core.exceptions import ExceptDB, NotFindData
+from src.api_v1.airports.crud import get_airport, get_airports_nearest, get_all_airport
 from src.core.config import configure_logging
-from src.utils.data_utils import model_to_json, json_to_model
+from src.core.database import get_async_session, get_cache_connection
+from src.core.exceptions import ExceptDB, NotFindData
+from src.models.airport import Airport
+from src.utils.data_utils import json_to_model, model_to_json
+from src.utils.geo_utils import get_location_info
 
+from .schemas import AirPortOutAllSchemas, AirPortOutGeoSchemas, AirPortOutShortSchemas
 
 router = APIRouter(tags=["Airports"])
 

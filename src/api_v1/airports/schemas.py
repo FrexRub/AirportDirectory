@@ -1,11 +1,10 @@
 import os
-from uuid import uuid4
 from typing import Optional
+from uuid import uuid4
 
-from pydantic import BaseModel, computed_field, Field, UUID4
+from pydantic import UUID4, BaseModel, Field, computed_field
 
-
-from src.core.config import DIR_LOGOTIP, DIR_FOTO
+from src.core.config import DIR_FOTO, DIR_LOGOTIP
 
 
 class GeoDataSchemas(BaseModel):

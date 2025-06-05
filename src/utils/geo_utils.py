@@ -1,8 +1,9 @@
 import asyncio
+from typing import Optional
 from geopy.geocoders import Nominatim
 
 
-async def get_location_info(lat: float, lon: float):
+async def get_location_info(lat: float, lon: float) -> Optional[dict[str, str]]:
     """
         получение информации гео-данным
     Args:

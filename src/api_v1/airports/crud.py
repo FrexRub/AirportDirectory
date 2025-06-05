@@ -1,16 +1,17 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import select, Float
+from geoalchemy2.functions import ST_DistanceSphere, ST_Point
+from sqlalchemy import Float, select
 from sqlalchemy.engine import Result
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import cast
-from geoalchemy2.functions import ST_Point, ST_DistanceSphere
 
-from src.models.airport import Airport
-from .schemas import AirPortOutGeoSchemas
 from src.core.exceptions import ExceptDB, NotFindData
+from src.models.airport import Airport
+
+from .schemas import AirPortOutGeoSchemas
 
 
 async def get_all_airport(session: AsyncSession) -> list[tuple[Any]]:

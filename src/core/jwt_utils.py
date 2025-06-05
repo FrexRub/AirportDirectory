@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import asyncio
-from typing import Optional
+from typing import Optional, Any
 
 import bcrypt
 import jwt
@@ -43,7 +43,7 @@ async def validate_password(
 
 
 async def encode_jwt(
-    payload: dict,
+    payload: dict[str, Any],
     key: str = setting_conn.SECRET_KEY,
     algorithm: str = setting.auth_jwt.algorithm,
 ) -> str:
@@ -68,7 +68,7 @@ async def decode_jwt(
     token: str | bytes,
     key: str = setting_conn.SECRET_KEY,
     algorithm: str = setting.auth_jwt.algorithm,
-):
+) -> dict[str, Any]:
     """
     Раскодирует jwt-токен
     :param token: jwt-токен

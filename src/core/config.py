@@ -13,7 +13,7 @@ DIR_FOTO = "foto"
 COOKIE_NAME = "bonds_airport"
 
 
-def configure_logging(level=logging.INFO):
+def configure_logging(level=logging.INFO) -> None:
     logging.basicConfig(
         level=level,
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -38,7 +38,7 @@ class SettingConn(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
 
 
-setting_conn = SettingConn()
+setting_conn = SettingConn()  # type: ignore
 
 
 class DbSetting(BaseSettings):
