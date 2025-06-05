@@ -1,8 +1,10 @@
 import logging
+import warnings
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
+from fastapi_pagination.utils import FastAPIPaginationWarning
 from starlette.middleware.sessions import SessionMiddleware
 
 import uvicorn
@@ -19,6 +21,8 @@ description = """
     * **Create/Update/Remove users**
     * **Load file**
 """
+
+warnings.simplefilter("ignore", FastAPIPaginationWarning)
 
 app = FastAPI(
     title="API_AirportDirectory",

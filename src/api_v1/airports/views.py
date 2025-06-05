@@ -31,8 +31,31 @@ logger = logging.getLogger(__name__)
 @router.get("/airports", response_model=Page[AirPortOutShortSchemas])
 async def get_airports_all(
     session: AsyncSession = Depends(get_async_session),
-) -> list[AirPortOutShortSchemas]:
-    airports_db: list[tuple[Any]] = await get_all_airport(session)
+    db_cache=Depends(get_cache_connection),
+) -> Page[AirPortOutShortSchemas]:
+    all_airports = await db_cache.lrange("airports", 0, -1)
+    if not all_airports:
+        airports_db: list[tuple[Any]] = await get_all_airport(session)
+        for airport in airports_db:
+            id_, name, address, img_top, short_description = airport
+            airport_data = {
+                "id": str(id_),
+                "name": name,
+                "address": address,
+                "img_top": img_top,
+                "short_description": short_description,
+            }
+            await db_cache.rpush("airports", json.dumps(airport_data))
+            logger.info("Write in cache info about airports")
+    else:
+        logger.info("Read from cache info about airports")
+        all_airports: list[str] = await db_cache.lrange("airports", 0, -1)
+        airports_db: list[AirPortOutShortSchemas] = list()
+        for airport in all_airports:
+            airport_dict: dict[Any] = json.loads(airport)
+            airport_dict["id"] = UUID(airport_dict["id"])
+            airports_db.append(AirPortOutShortSchemas(**airport_dict))
+        print("No cache", airports_db)
     return paginate(airports_db)
 
 
