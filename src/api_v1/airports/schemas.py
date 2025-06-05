@@ -55,18 +55,9 @@ class AirPortOutAllSchemas(BaseModel):
 class AirPortOutGeoSchemas(BaseModel):
     id: UUID4 = Field(default_factory=uuid4)
     name: str
-    full_name: str
     city: str
-    address: str
-    url: str
-    short_description: str
-    description: str
-    icao: str
-    iata: str
-    internal_code: str
     latitude: float
     longitude: float
-    img_top: str = Field(description="Имя файла логотипа аэропорта")
-    img_airport: str = Field(description="Имя файла фотографии аэропорта")
-    time_zone: str
+    # img_top: str = Field(description="Имя файла логотипа аэропорта")
+    # img_airport: str = Field(description="Имя файла фотографии аэропорта")
     distance: Optional[float] = Field(None, description="Distance in meters")

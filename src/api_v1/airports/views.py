@@ -19,6 +19,7 @@ from src.core.database import get_async_session, get_cache_connection
 from src.models.airport import Airport
 from src.core.exceptions import ExceptDB, NotFindData
 from src.core.config import configure_logging
+from src.utils.data_utils import model_to_json, json_to_model
 
 
 router = APIRouter(tags=["Airports"])
@@ -56,15 +57,16 @@ async def get_airport_by_id(
                 detail=f"{exp}",
             )
         else:
-            airport_json: str = AirPortOutAllSchemas(
-                **airport.__dict__
-            ).model_dump_json()
+            airport_json: str = await model_to_json(
+                pydantic_model=AirPortOutAllSchemas, object=airport
+            )
             await db_cache.set(str(id), airport_json, ex=3600)
             logger.info("Write in cache info about airport with id %s", str(id))
     else:
         logger.info("Read from cache info about airport with id %s", str(id))
-        airport_dict = json.loads(airport_json)
-        airport: AirPortOutAllSchemas = AirPortOutAllSchemas(**airport_dict)
+        airport: AirPortOutAllSchemas = await json_to_model(
+            pydantic_model=AirPortOutAllSchemas, json_object=airport_json
+        )
     return airport
 
 

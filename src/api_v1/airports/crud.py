@@ -64,8 +64,6 @@ async def get_airports_nearest(
         .limit(limit + 1)
     )
 
-    # stmt = select(Airport).order_by(ST_DistanceSphere(geo, Airport.geo)).limit(limit)
-    # airports: Sequence[Airport] = result.scalars().all()
     result: Result = await session.execute(stmt)
 
     airports_nearest = list()
