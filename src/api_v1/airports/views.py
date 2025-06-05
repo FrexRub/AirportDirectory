@@ -1,5 +1,7 @@
 from typing import Sequence, Any
 from uuid import UUID
+import json
+import logging
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.exceptions import HTTPException
@@ -16,9 +18,13 @@ from src.api_v1.airports.crud import get_all_airport, get_airports_nearest, get_
 from src.core.database import get_async_session, get_cache_connection
 from src.models.airport import Airport
 from src.core.exceptions import ExceptDB, NotFindData
+from src.core.config import configure_logging
 
 
 router = APIRouter(tags=["Airports"])
+
+configure_logging(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @router.get("/airports", response_model=Page[AirPortOutShortSchemas])
@@ -35,8 +41,8 @@ async def get_airport_by_id(
     session: AsyncSession = Depends(get_async_session),
     db_cache=Depends(get_cache_connection),
 ) -> Sequence[Airport]:
-    airport = await db_cache.get(str(id))
-    if airport is None:
+    airport_json: str = await db_cache.get(str(id))
+    if airport_json is None:
         try:
             airport = await get_airport(session=session, id_airport=id)
         except ExceptDB as exp:
@@ -50,7 +56,15 @@ async def get_airport_by_id(
                 detail=f"{exp}",
             )
         else:
-            await db_cache.set(str(id), airport, ex=3600)
+            airport_json: str = AirPortOutAllSchemas(
+                **airport.__dict__
+            ).model_dump_json()
+            await db_cache.set(str(id), airport_json, ex=3600)
+            logger.info("Write in cache info about airport with id %s", str(id))
+    else:
+        logger.info("Read from cache info about airport with id %s", str(id))
+        airport_dict = json.loads(airport_json)
+        airport: AirPortOutAllSchemas = AirPortOutAllSchemas(**airport_dict)
     return airport
 
 
