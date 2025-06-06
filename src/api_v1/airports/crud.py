@@ -14,7 +14,7 @@ from src.models.airport import Airport
 from .schemas import AirPortOutGeoSchemas
 
 
-async def get_all_airport(session: AsyncSession) -> Sequence[Row[Any]]:
+async def get_all_airport(session: AsyncSession) -> list[Row[Any]]:
     stmt = select(
         Airport.id,
         Airport.name,
@@ -24,7 +24,7 @@ async def get_all_airport(session: AsyncSession) -> Sequence[Row[Any]]:
     )
     result: Result = await session.execute(stmt)
     airports: Sequence[Row[Any]] = result.all()
-    return airports
+    return list(airports)
 
 
 async def get_airport(session: AsyncSession, id_airport: UUID) -> Airport:

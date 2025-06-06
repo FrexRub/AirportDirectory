@@ -34,7 +34,7 @@ async def get_airports_all(
 ) -> Page[AirPortOutShortSchemas]:
     all_airports = await db_cache.lrange("airports", 0, -1)
     if not all_airports:
-        airports_db: Sequence[Row[Any]] = await get_all_airport(session)
+        airports_db: list[Any] = await get_all_airport(session)
         for airport in airports_db:
             id_, name, address, img_top, short_description = airport
             airport_data = {
@@ -85,9 +85,9 @@ async def get_airport_by_id(
             logger.info("Write in cache info about airport with id %s", str(id))
     else:
         logger.info("Read from cache info about airport with id %s", str(id))
-        airport: AirPortOutAllSchemas = await json_to_model(
+        airport: AirPortOutAllSchemas = await json_to_model(  # type: ignore
             pydantic_model=AirPortOutAllSchemas, json_object=airport_json
-        )
+        )  # type: ignore
     return airport
 
 
@@ -124,7 +124,7 @@ async def get_nearest_airports(
     db_cache=Depends(get_cache_connection),
 ) -> list[AirPortOutGeoSchemas]:
     redis_key: str = f"{longitude}:{latitude}"
-    all_airports = await db_cache.lrange(redis_key, 0, -1)
+    all_airports: list[str] = await db_cache.lrange(redis_key, 0, -1)
     if not all_airports:
         airports_nearest: list[AirPortOutGeoSchemas] = await get_airports_nearest(
             session=session,
@@ -137,11 +137,12 @@ async def get_nearest_airports(
         logger.info("Write in cache info about airports nearest")
     else:
         logger.info("Read from cache info about airports nearest")
-        all_airports: list[str] = await db_cache.lrange(redis_key, 0, -1)
-        airports_nearest: list[AirPortOutGeoSchemas] = list()
-        for airport in all_airports:
-            airport_dict: dict[Any] = json.loads(airport)
-            airports_nearest.append(AirPortOutGeoSchemas(**airport_dict))
+        # all_airports: list[str] = await db_cache.lrange(redis_key, 0, -1)
+        airports_nearest: list[AirPortOutGeoSchemas] = list()  # type: ignore
+        for airport_json in all_airports:
+            airport_dict: dict[str, Any] = json.loads(airport_json)
+            obj: AirPortOutGeoSchemas = AirPortOutGeoSchemas(**airport_dict)
+            airports_nearest.append(obj)
     return airports_nearest
 
 
