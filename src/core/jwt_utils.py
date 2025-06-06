@@ -103,5 +103,5 @@ async def create_jwt(
     if expire_minutes is None:
         expire_minutes = setting.auth_jwt.access_token_expire_minutes
     expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
-    payload["exp"] = expire
+    payload["exp"] = expire  # type: ignore
     return await encode_jwt(payload)

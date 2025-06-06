@@ -15,7 +15,7 @@ PATTERN_PASSWORD = (
 
 
 class UserBaseSchemas(BaseModel):
-    full_name: str
+    full_name: Optional[str]
     email: EmailStr
 
 

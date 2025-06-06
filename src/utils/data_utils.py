@@ -18,6 +18,6 @@ async def model_to_json(pydantic_model: Type[T], object: Base) -> str:
 
 async def json_to_model(pydantic_model: Type[T], json_object: str) -> T:
     await asyncio.sleep(0)
-    data_dict: dict[Any] = json.loads(json_object)
+    data_dict: dict[str, Any] = json.loads(json_object)
     data_model: T = pydantic_model(**data_dict)
     return data_model

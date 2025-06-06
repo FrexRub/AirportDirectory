@@ -1,69 +1,20 @@
 from typing import Annotated, Optional
 from uuid import UUID
-import json
-from functools import wraps
-from aiocache import Cache
 from redis import Redis
 
 import jwt
 from fastapi import Depends, status, Path, Request, Response, Security
 from fastapi.exceptions import HTTPException
-from fastapi.security import APIKeyCookie
 from fastapi.security.api_key import APIKeyHeader
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_async_session, get_redis_connection
-from src.core.config import setting_conn, setting
 from src.core.jwt_utils import decode_jwt, create_jwt
 from src.api_v1.users.crud import get_user_by_id
 from src.models.user import User
 
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
-
-
-def cache_response(ttl: int = 60, namespace: str = "main"):
-    """
-    Caching decorator for FastAPI endpoints.
-
-    ttl: Time to live for the cache in seconds.
-    namespace: Namespace for cache keys in Redis.
-    """
-
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            user_id = (
-                kwargs.get("user_id") or args[0]
-            )  # Assuming the user ID is the first argument
-            cache_key = f"{namespace}:user:{user_id}"
-
-            # cache = Cache.REDIS(endpoint="localhost", port=6379, namespace=namespace)
-            cache = Cache.REDIS(
-                endpoint=setting_conn.REDIS_HOST,
-                port=setting_conn.REDIS_PORT,
-                namespace=namespace,
-            )
-
-            # Try to retrieve data from cache
-            cached_value = await cache.get(cache_key)
-            if cached_value:
-                return json.loads(cached_value)  # Return cached data
-
-            # Call the actual function if cache is not hit
-            response = await func(*args, **kwargs)
-
-            try:
-                # Store the response in Redis with a TTL
-                await cache.set(cache_key, json.dumps(response), ttl=ttl)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Error caching data: {e}")
-
-            return response
-
-        return wrapper
-
-    return decorator
 
 
 async def current_user_authorization(
@@ -72,7 +23,7 @@ async def current_user_authorization(
     authorization_header: str = Security(api_key_header),
     redis: Redis = Depends(get_redis_connection),
     session: AsyncSession = Depends(get_async_session),
-) -> User:
+) -> Optional[User]:
 
     if authorization_header is None:
         raise HTTPException(
@@ -139,7 +90,7 @@ async def user_by_id(
     id_user: Annotated[UUID, Path],
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user_authorization),
-) -> User:
+) -> Optional[User]:
     find_user: Optional[User] = await get_user_by_id(session=session, id_user=id_user)
     if find_user is None:
         raise HTTPException(

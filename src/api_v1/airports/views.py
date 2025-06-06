@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Sequence
+from typing import Any, Sequence, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
@@ -8,7 +8,7 @@ from fastapi.exceptions import HTTPException
 from fastapi_pagination import Page, paginate
 from geoalchemy2.functions import ST_DistanceSphere, ST_Point
 from geoalchemy2.types import Geometry
-from sqlalchemy import select
+from sqlalchemy import select, Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.airports.crud import get_airport, get_airports_nearest, get_all_airport
@@ -34,7 +34,7 @@ async def get_airports_all(
 ) -> Page[AirPortOutShortSchemas]:
     all_airports = await db_cache.lrange("airports", 0, -1)
     if not all_airports:
-        airports_db: list[tuple[Any]] = await get_all_airport(session)
+        airports_db: Sequence[Row[Any]] = await get_all_airport(session)
         for airport in airports_db:
             id_, name, address, img_top, short_description = airport
             airport_data = {
@@ -48,10 +48,9 @@ async def get_airports_all(
         logger.info("Write in cache info about airports")
     else:
         logger.info("Read from cache info about airports")
-        all_airports: list[str] = await db_cache.lrange("airports", 0, -1)
-        airports_db: list[AirPortOutShortSchemas] = list()
-        for airport in all_airports:
-            airport_dict: dict[Any] = json.loads(airport)
+        airports_db: list[AirPortOutShortSchemas] = list()  # type: ignore
+        for airport_json in all_airports:
+            airport_dict: dict[str, Any] = json.loads(airport_json)
             airport_dict["id"] = UUID(airport_dict["id"])
             airports_db.append(AirPortOutShortSchemas(**airport_dict))
     return paginate(airports_db)
@@ -62,11 +61,12 @@ async def get_airport_by_id(
     id: UUID,
     session: AsyncSession = Depends(get_async_session),
     db_cache=Depends(get_cache_connection),
-) -> Sequence[Airport]:
+) -> AirPortOutAllSchemas:
     airport_json: str = await db_cache.get(str(id))
     if airport_json is None:
         try:
-            airport = await get_airport(session=session, id_airport=id)
+            airport_obj: Airport = await get_airport(session=session, id_airport=id)
+            airport: AirPortOutAllSchemas = AirPortOutAllSchemas(**airport_obj.__dict__)
         except ExceptDB as exp:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,10 +78,10 @@ async def get_airport_by_id(
                 detail=f"{exp}",
             )
         else:
-            airport_json: str = await model_to_json(
-                pydantic_model=AirPortOutAllSchemas, object=airport
+            airport_json_model: str = await model_to_json(
+                pydantic_model=AirPortOutAllSchemas, object=airport_obj
             )
-            await db_cache.set(str(id), airport_json, ex=3600)
+            await db_cache.set(str(id), airport_json_model, ex=3600)
             logger.info("Write in cache info about airport with id %s", str(id))
     else:
         logger.info("Read from cache info about airport with id %s", str(id))
@@ -99,8 +99,12 @@ async def get_distance(
     longitude_airport: float = Query(..., description="Долгота аэропорта"),
     session: AsyncSession = Depends(get_async_session),
 ) -> dict[str, float]:
-    geo_city: Geometry = ST_Point(longitude_city, latitude_city, srid=4326)
-    geo_airport: Geometry = ST_Point(longitude_airport, latitude_airport, srid=4326)
+    geo_city: Union[Geometry, ST_Point] = ST_Point(
+        longitude_city, latitude_city, srid=4326
+    )
+    geo_airport: Union[Geometry, ST_Point] = ST_Point(
+        longitude_airport, latitude_airport, srid=4326
+    )
 
     distance: float = await session.scalar(
         select(ST_DistanceSphere(geo_city, geo_airport))
@@ -118,7 +122,7 @@ async def get_nearest_airports(
     limit: int = 3,
     session: AsyncSession = Depends(get_async_session),
     db_cache=Depends(get_cache_connection),
-) -> Sequence[Airport]:
+) -> list[AirPortOutGeoSchemas]:
     redis_key: str = f"{longitude}:{latitude}"
     all_airports = await db_cache.lrange(redis_key, 0, -1)
     if not all_airports:
@@ -145,7 +149,7 @@ async def get_nearest_airports(
 async def get_city_name(
     latitude: float = Query(..., description="Широта"),
     longitude: float = Query(..., description="Долгота"),
-):
+) -> dict[str, str]:
     city_info = await get_location_info(latitude, longitude)
 
     if city_info:

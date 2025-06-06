@@ -13,7 +13,7 @@ DIR_FOTO = "foto"
 COOKIE_NAME = "bonds_airport"
 
 
-def configure_logging(level=logging.INFO) -> None:
+def configure_logging(level: int = logging.INFO) -> None:
     logging.basicConfig(
         level=level,
         datefmt="%Y-%m-%d %H:%M:%S",

@@ -1,9 +1,11 @@
+from typing import Optional
+
 from fastapi import HTTPException
 from fastapi import status
 
 
 class ExceptAuthentication(HTTPException):
-    def __init__(self, detail=None):
+    def __init__(self, detail: Optional[str] = None) -> None:
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=detail or "Требуется авторизация",

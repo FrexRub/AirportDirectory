@@ -2,6 +2,7 @@ from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from redis import asyncio as aioredis
+from redis import Redis
 
 
 from src.core.config import setting
@@ -18,13 +19,13 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-async def get_redis_connection():
+async def get_redis_connection() -> AsyncGenerator[Redis, None]:
     redis = await aioredis.from_url(setting.redis.url, decode_responses=True)
     yield redis
 
 
-async def get_cache_connection():
-    redis_cash = aioredis.from_url(
+async def get_cache_connection() -> AsyncGenerator[Redis, None]:
+    redis_cash = await aioredis.from_url(
         setting.redis.url + "/1",
         encoding="utf8",
         decode_responses=True,

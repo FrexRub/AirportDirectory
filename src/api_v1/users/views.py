@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, status, Response, Request
 from fastapi.exceptions import HTTPException
@@ -49,8 +50,16 @@ logger = logging.getLogger(__name__)
 async def get_info_about_me(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user_authorization),
-):
-    return await find_user_by_email(session=session, email=user.email)
+) -> UserBaseSchemas:
+    find_user: Optional[User] = await find_user_by_email(
+        session=session, email=user.email
+    )
+    if find_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The user not found",
+        )
+    return UserBaseSchemas(**find_user.__dict__)
 
 
 @router.post(
@@ -62,7 +71,7 @@ async def user_login(
     data_login: LoginSchemas,
     session: AsyncSession = Depends(get_async_session),
     redis: Redis = Depends(get_redis_connection),
-):
+) -> OutUserSchemas:
     logger.info(f"start login {data_login.username}")
 
     try:
@@ -125,7 +134,7 @@ async def user_register(
     new_user: UserCreateSchemas,
     session: AsyncSession = Depends(get_async_session),
     redis: Redis = Depends(get_redis_connection),
-):
+) -> OutUserSchemas:
     try:
         user: User = await create_user(session=session, user_data=new_user)
     except EmailInUse:
@@ -170,19 +179,26 @@ async def user_register(
 
 
 @router.get("/logout", status_code=status.HTTP_200_OK)
-def logout(request: Request, response: Response):
+def logout(request: Request, response: Response) -> None:
+    """
+    Обрабатывает выход пользователя из системы.
+
+    Args:
+        request: Объект запроса FastAPI
+        response: Объект ответа FastAPI
+    """
     response.delete_cookie(COOKIE_NAME)
     request.session.clear()
 
 
 @router.put(
-    "/{id_user}/", response_model=OutUserSchemas, status_code=status.HTTP_200_OK
+    "/{id_user}/", response_model=UserInfoSchemas, status_code=status.HTTP_200_OK
 )
 async def update_user(
     user_update: UserUpdateSchemas,
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(get_async_session),
-):
+) -> UserInfoSchemas:
     try:
         res = await update_user_db(session=session, user=user, user_update=user_update)
     except UniqueViolationError:
@@ -191,17 +207,17 @@ async def update_user(
             detail=f"Duplicate email",
         )
     else:
-        return res
+        return UserInfoSchemas(**res.__dict__)
 
 
 @router.patch(
-    "/{id_user}/", response_model=OutUserSchemas, status_code=status.HTTP_200_OK
+    "/{id_user}/", response_model=UserInfoSchemas, status_code=status.HTTP_200_OK
 )
 async def update_user_partial(
     user_update: UserUpdatePartialSchemas,
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(get_async_session),
-):
+) -> UserInfoSchemas:
     try:
         res = await update_user_db(
             session=session, user=user, user_update=user_update, partial=True
@@ -212,4 +228,4 @@ async def update_user_partial(
             detail=f"Duplicate email",
         )
     else:
-        return res
+        return UserInfoSchemas(**res.__dict__)

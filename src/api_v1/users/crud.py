@@ -186,6 +186,6 @@ async def delete_user_db(session: AsyncSession, user: User) -> None:
     :rtype: None
     :return:
     """
-    logger.info("Delete user by id %d" % user.id)
+    logger.info("Delete user by id %s" % user.id)
     await session.delete(user)
     await session.commit()

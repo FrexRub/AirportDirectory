@@ -38,14 +38,14 @@ class AirPortOutAllSchemas(BaseModel):
     img_airport: str = Field(description="Имя файла фотографии аэропорта")
     time_zone: str
 
-    @computed_field(description="Полный URL изображения логотипа")
     @property
+    @computed_field(description="Полный URL изображения логотипа")
     def image_url(self) -> str:
         file_name: str = os.path.join(DIR_LOGOTIP, self.img_top)
         return file_name
 
-    @computed_field(description="Полный URL фото аэропорта")
     @property
+    @computed_field(description="Полный URL фото аэропорта")
     def image_foto_url(self) -> str:
         file_name: str = os.path.join(DIR_FOTO, self.img_top)
         return file_name

@@ -1,6 +1,6 @@
 import asyncio
 from typing import Optional
-from geopy.geocoders import Nominatim
+from geopy.geocoders import Nominatim  # type: ignore[import-untyped]
 
 
 async def get_location_info(lat: float, lon: float) -> Optional[dict[str, str]]:

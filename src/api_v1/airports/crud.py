@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, Sequence, Optional
 from uuid import UUID
 
 from geoalchemy2.functions import ST_DistanceSphere, ST_Point
-from sqlalchemy import Float, select
+from sqlalchemy import Float, select, Row
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,7 @@ from src.models.airport import Airport
 from .schemas import AirPortOutGeoSchemas
 
 
-async def get_all_airport(session: AsyncSession) -> list[tuple[Any]]:
+async def get_all_airport(session: AsyncSession) -> Sequence[Row[Any]]:
     stmt = select(
         Airport.id,
         Airport.name,
@@ -23,13 +23,13 @@ async def get_all_airport(session: AsyncSession) -> list[tuple[Any]]:
         Airport.short_description,
     )
     result: Result = await session.execute(stmt)
-    airports: list[tuple[Any]] = result.all()
+    airports: Sequence[Row[Any]] = result.all()
     return airports
 
 
 async def get_airport(session: AsyncSession, id_airport: UUID) -> Airport:
     try:
-        airport: Airport = await session.get(Airport, id_airport)
+        airport: Optional[Airport] = await session.get(Airport, id_airport)
     except SQLAlchemyError as exc:
         raise ExceptDB(exc)
     if airport is None:
@@ -71,7 +71,7 @@ async def get_airports_nearest(
     for airport, distance in result:
         if (airport.latitude != latitude) and (airport.longitude != longitude):
             data = AirPortOutGeoSchemas(**airport.__dict__)
-            data.distance: float = round(distance / 1000, 2)
+            data.distance: float = round(distance / 1000, 2)  # type: ignore
             airports_nearest.append(data)
 
     return airports_nearest[:limit]
