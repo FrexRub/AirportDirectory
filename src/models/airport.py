@@ -1,7 +1,6 @@
+from geoalchemy2 import Geometry
 from sqlalchemy import Float, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.schema import Index
-from geoalchemy2 import Geometry
 
 from src.models.base import Base
 

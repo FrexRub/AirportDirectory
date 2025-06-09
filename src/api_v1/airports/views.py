@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Sequence, Union
+from typing import Any, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
@@ -8,7 +8,7 @@ from fastapi.exceptions import HTTPException
 from fastapi_pagination import Page, paginate
 from geoalchemy2.functions import ST_DistanceSphere, ST_Point
 from geoalchemy2.types import Geometry
-from sqlalchemy import select, Row
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.airports.crud import get_airport, get_airports_nearest, get_all_airport

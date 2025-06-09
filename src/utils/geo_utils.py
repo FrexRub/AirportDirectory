@@ -1,5 +1,6 @@
 import asyncio
 from typing import Optional
+
 from geopy.geocoders import Nominatim  # type: ignore[import-untyped]
 
 
@@ -17,7 +18,7 @@ async def get_location_info(lat: float, lon: float) -> Optional[dict[str, str]]:
     'state': 'Москва',
     'country': 'Россия',
     'postcode': '109012',
-    'full_address': 'Московский Кремль и Красная Площадь, Хрустальный переулок, 15, Китай-город, Тверской район, Москва, Центральный федеральный округ, 109012, Россия'
+    'full_address': 'Московский Кремль и Красная Площадь,Москва, Центральный федеральный округ, 109012, Россия'
     }
 
     """

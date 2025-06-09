@@ -1,10 +1,9 @@
 import asyncio
 import json
-from typing import Type, TypeVar, Any
+from typing import Any, Type, TypeVar
 
 from pydantic import BaseModel
 
-from src.api_v1.airports.schemas import AirPortOutAllSchemas
 from src.models.base import Base
 
 T = TypeVar("T", bound=BaseModel)

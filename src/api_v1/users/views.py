@@ -1,40 +1,40 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, status, Response, Request
+from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.exceptions import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 from redis import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database import get_async_session, get_redis_connection
-from src.core.config import configure_logging, setting, COOKIE_NAME
-from src.core.exceptions import (
-    ErrorInData,
-    EmailInUse,
-    UniqueViolationError,
-    NotFindUser,
-)
 from src.api_v1.users.crud import (
     create_user,
-    update_user_db,
     find_user_by_email,
     get_user_from_db,
+    update_user_db,
 )
+from src.api_v1.users.schemas import (
+    LoginSchemas,
+    OutUserSchemas,
+    UserBaseSchemas,
+    UserCreateSchemas,
+    UserInfoSchemas,
+    UserUpdatePartialSchemas,
+    UserUpdateSchemas,
+)
+from src.core.config import COOKIE_NAME, configure_logging, setting
+from src.core.database import get_async_session, get_redis_connection
 from src.core.depends import (
     current_user_authorization,
     user_by_id,
 )
-from src.models.user import User
-from src.api_v1.users.schemas import (
-    UserCreateSchemas,
-    OutUserSchemas,
-    UserUpdateSchemas,
-    UserUpdatePartialSchemas,
-    UserBaseSchemas,
-    UserInfoSchemas,
-    LoginSchemas,
+from src.core.exceptions import (
+    EmailInUse,
+    ErrorInData,
+    NotFindUser,
+    UniqueViolationError,
 )
 from src.core.jwt_utils import create_jwt, validate_password
+from src.models.user import User
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -57,7 +57,7 @@ async def get_info_about_me(
     if find_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"The user not found",
+            detail="The user not found",
         )
     return UserBaseSchemas(**find_user.__dict__)
 
@@ -204,7 +204,7 @@ async def update_user(
     except UniqueViolationError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Duplicate email",
+            detail="Duplicate email",
         )
     else:
         return UserInfoSchemas(**res.__dict__)
@@ -225,7 +225,7 @@ async def update_user_partial(
     except UniqueViolationError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Duplicate email",
+            detail="Duplicate email",
         )
     else:
         return UserInfoSchemas(**res.__dict__)

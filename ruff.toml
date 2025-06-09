@@ -1,3 +1,4 @@
+# версия Python для проверки совместимости
 target-version = "py311"
 line-length = 120
 

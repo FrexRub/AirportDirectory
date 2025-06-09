@@ -1,8 +1,8 @@
-from typing import Any, Sequence, Optional
+from typing import Any, Optional, Sequence
 from uuid import UUID
 
 from geoalchemy2.functions import ST_DistanceSphere, ST_Point
-from sqlalchemy import Float, select, Row
+from sqlalchemy import Float, Row, select
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession

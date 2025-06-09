@@ -1,10 +1,10 @@
 import logging
 
 import aiohttp
+from authlib.integrations.starlette_client import OAuthError
 from fastapi import Request
 
 from src.core.config import configure_logging, oauth_yandex
-from authlib.integrations.starlette_client import OAuthError
 from src.core.exceptions import ExceptAuthentication
 
 configure_logging(logging.INFO)

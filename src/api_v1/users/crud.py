@@ -7,22 +7,21 @@ from sqlalchemy.engine import Result
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api_v1.users.schemas import (
+    UserBaseSchemas,
+    UserCreateSchemas,
+    UserUpdatePartialSchemas,
+    UserUpdateSchemas,
+)
 from src.core.config import configure_logging
 from src.core.exceptions import (
-    UniqueViolationError,
-    NotFindUser,
     EmailInUse,
     ErrorInData,
+    NotFindUser,
+    UniqueViolationError,
 )
 from src.core.jwt_utils import create_hash_password
 from src.models.user import User
-from src.api_v1.users.schemas import (
-    UserCreateSchemas,
-    UserUpdateSchemas,
-    UserUpdatePartialSchemas,
-    UserBaseSchemas,
-)
-
 
 configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)

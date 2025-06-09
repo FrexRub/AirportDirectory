@@ -1,17 +1,16 @@
 from typing import Annotated, Optional
 from uuid import UUID
-from redis import Redis
 
 import jwt
-from fastapi import Depends, status, Path, Request, Response, Security
+from fastapi import Depends, Path, Request, Response, Security, status
 from fastapi.exceptions import HTTPException
 from fastapi.security.api_key import APIKeyHeader
-
+from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database import get_async_session, get_redis_connection
-from src.core.jwt_utils import decode_jwt, create_jwt
 from src.api_v1.users.crud import get_user_by_id
+from src.core.database import get_async_session, get_redis_connection
+from src.core.jwt_utils import decode_jwt
 from src.models.user import User
 
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)

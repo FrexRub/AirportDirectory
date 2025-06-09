@@ -1,7 +1,6 @@
 from typing import Optional
 
-from fastapi import HTTPException
-from fastapi import status
+from fastapi import HTTPException, status
 
 
 class ExceptAuthentication(HTTPException):

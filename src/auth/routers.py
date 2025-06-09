@@ -1,30 +1,30 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Request, Response, status, Depends
+from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.exceptions import HTTPException
-from starlette.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.models.user import User
-from src.core.config import (
-    setting,
-    configure_logging,
-    templates,
-    oauth_yandex,
-    COOKIE_NAME,
-)
-from src.core.exceptions import ErrorInData, NotFindUser
-from src.core.jwt_utils import create_jwt, validate_password
-from src.core.database import get_async_session
-from src.auth.utils import get_yandex_user_data, get_access_token
-from src.auth.schemas import LoginSchemas
+from starlette.responses import RedirectResponse
+
 from src.api_v1.users.crud import (
-    find_user_by_email,
     create_user_without_password,
+    find_user_by_email,
     get_user_from_db,
 )
 from src.api_v1.users.schemas import UserBaseSchemas
-
+from src.auth.schemas import LoginSchemas
+from src.auth.utils import get_access_token, get_yandex_user_data
+from src.core.config import (
+    COOKIE_NAME,
+    configure_logging,
+    oauth_yandex,
+    setting,
+    templates,
+)
+from src.core.database import get_async_session
+from src.core.exceptions import ErrorInData, NotFindUser
+from src.core.jwt_utils import create_jwt, validate_password
+from src.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

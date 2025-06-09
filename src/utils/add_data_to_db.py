@@ -3,14 +3,13 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-
-from sqlalchemy import select, exists
-from sqlalchemy.engine import Result
 from geoalchemy2.functions import ST_Point
+from sqlalchemy import exists, select
+from sqlalchemy.engine import Result
 
+from src.core.config import BASE_DIR, configure_logging
 from src.core.database import async_session_maker
 from src.models.airport import Airport
-from src.core.config import configure_logging, BASE_DIR
 
 configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)
