@@ -178,6 +178,7 @@ async def update_user_db(
 
 async def delete_user_db(session: AsyncSession, user: User) -> None:
     """
+    Удаляет заданного пользователя
     :param session: сессия
     :type session: AsyncSession
     :param user: данные удаляемого пользователя
