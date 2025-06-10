@@ -78,3 +78,18 @@ async def test_airport_nearest(
     assert response.status_code == 200
     assert len(response.json()) == 3
     assert response.json()[0]["city"] == "Москва"
+
+
+async def test_airport_geo_local(
+    event_loop: asyncio.AbstractEventLoop,
+    client: AsyncClient,
+    test_db: AsyncSession,
+):
+    data = {
+        "latitude": 55.75,
+        "longitude": 37.62,
+    }
+    response = await client.get("api/geo-local", params=data)
+    print(response.json())
+    assert response.status_code == 200
+    assert response.json()["city"] == "Москва"
