@@ -70,35 +70,15 @@ async def test_user_bad_password(
     assert response.status_code == 422
 
 
-#
-#
-# async def test_user_put(
-#     event_loop: asyncio.AbstractEventLoop,
-#     client: AsyncClient,
-#     token_admin: str,
-#     db_session: AsyncSession,
-# ):
-#     stmt = select(User).filter(User.email == email)
-#     res: Result = await db_session.execute(stmt)
-#     user_db: User | None = res.scalar_one_or_none()
-#     user_id: str = str(user_db.id)
-#
-#     user = {"username": "Lena", "email": "smirnova@mail.ru"}
-#     cookies = {COOKIE_NAME: token_admin}
-#
-#     response = await client.put(
-#         f"/api/users/{user_id}/",
-#         json=user,
-#         cookies=cookies,
-#     )
-#
-#     stmt = select(User).filter(User.email == "smirnova@mail.ru")
-#     res: Result = await db_session.execute(stmt)
-#     user_db: User | None = res.scalar_one_or_none()
-#
-#     assert response.status_code == 200
-#     assert response.json()["username"] == "Lena"
-#     assert response.json()["email"] == "smirnova@mail.ru"
-#     assert user_db.email == "smirnova@mail.ru"
-#
-#
+async def test_user_about_me(
+    event_loop: asyncio.AbstractEventLoop,
+    client: AsyncClient,
+    token_admin: str,
+):
+    header = {"Authorization": f"Bearer {token_admin}"}
+    response = await client.get(
+        "api/users/me",
+        headers=header,
+    )
+    assert response.status_code == 200
+    assert response.json()["full_name"] == "TestUser"
