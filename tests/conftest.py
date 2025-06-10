@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import (
 
 from src.core.database import get_async_session
 from src.core.jwt_utils import create_hash_password
+from src.utils.add_data_to_db import data_from_files_to_test_db
 from src.models.base import Base
 from src.models.user import User
 from src.main import app
@@ -44,7 +45,7 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
-async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(db_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
     async_session = async_sessionmaker(db_engine, expire_on_commit=False)
 
     async with async_session() as session:
@@ -75,7 +76,7 @@ async def client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
-async def test_user_admin(db_session) -> User:
+async def test_user_admin(db_session: AsyncSession) -> User:
     stmt = select(User).filter(User.email == "testuser@example.com")
     res: Result = await db_session.execute(stmt)
     user: User = res.scalar_one_or_none()
@@ -108,7 +109,7 @@ async def token_admin(
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
-async def test_user(db_session) -> User:
+async def test_user(db_session: AsyncSession) -> User:
     stmt = select(User).filter(User.email == "petr@mail.com")
     res: Result = await db_session.execute(stmt)
     user: User = res.scalar_one_or_none()
@@ -124,3 +125,9 @@ async def test_user(db_session) -> User:
         await db_session.commit()
 
     return user
+
+
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
+async def test_db(db_session: AsyncSession):
+    await data_from_files_to_test_db(db_session)
+    return db_session
