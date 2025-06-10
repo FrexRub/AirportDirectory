@@ -8,23 +8,37 @@ from sqlalchemy.engine import Result
 from src.models.airport import Airport
 
 
-# async def test_airport_1(
-#     event_loop: asyncio.AbstractEventLoop,
-#     client: AsyncClient,
-#     token_admin: str,
-# ):
-#     header = {"Authorization": f"Bearer {token_admin}"}
-#     response = await client.get(
-#         "api/users/me",
-#         headers=header,
-#     )
-#     assert response.status_code == 200
-#     assert response.json()["full_name"] == "TestUser"
-
-
 async def test_db_operation(test_db: AsyncSession):
     """Тест, проверяющий работу с данными из БД."""
     stmt = select(func.count(Airport.id))
     res: Result = await test_db.execute(stmt)
     count = res.scalar()
     assert count == 8, "Данные не загрузились в БД"
+
+
+async def test_airport_get_all(
+    event_loop: asyncio.AbstractEventLoop,
+    client: AsyncClient,
+    test_db: AsyncSession,
+):
+    response = await client.get(
+        "api/airports?page=1&size=6",
+    )
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 6
+
+
+async def test_airport_get_detail(
+    event_loop: asyncio.AbstractEventLoop,
+    client: AsyncClient,
+    test_db: AsyncSession,
+):
+    stmt = select(Airport).filter(Airport.name == "Шереметьево")
+    result = await test_db.execute(stmt)
+    airport = result.scalars().one_or_none()
+
+    data = {"id": airport.id}
+    response = await client.get("api/airport", params=data)
+    print(response.json())
+    assert response.status_code == 200
+    assert response.json()["name"] == "Шереметьево"
