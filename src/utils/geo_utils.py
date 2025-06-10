@@ -8,7 +8,7 @@ async def get_location_info(lat: float, lon: float) -> Optional[dict[str, str]]:
     """
         получение информации гео-данным
     Args:
-        lat (float): ширина
+        lat (float): широта
         lon (float): долгота
 
     Returns:
