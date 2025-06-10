@@ -32,6 +32,9 @@ async def get_airports_all(
     session: AsyncSession = Depends(get_async_session),
     db_cache=Depends(get_cache_connection),
 ) -> Page[AirPortOutShortSchemas]:
+    """
+    Возвращает список с данными аэропортов
+    """
     all_airports = await db_cache.lrange("airports", 0, -1)
     if not all_airports:
         airports_db: list[Any] = await get_all_airport(session)
@@ -62,6 +65,9 @@ async def get_airport_by_id(
     session: AsyncSession = Depends(get_async_session),
     db_cache=Depends(get_cache_connection),
 ) -> AirPortOutAllSchemas:
+    """
+    Возвращает данные аэропорта по ID
+    """
     airport_json: str = await db_cache.get(str(id))
     if airport_json is None:
         try:
@@ -99,6 +105,9 @@ async def get_distance(
     longitude_airport: float = Query(..., description="Долгота аэропорта"),
     session: AsyncSession = Depends(get_async_session),
 ) -> dict[str, float]:
+    """
+    Возвращает расстояние от города до аэропорта
+    """
     geo_city: Union[Geometry, ST_Point] = ST_Point(
         longitude_city, latitude_city, srid=4326
     )
@@ -123,6 +132,9 @@ async def get_nearest_airports(
     session: AsyncSession = Depends(get_async_session),
     db_cache=Depends(get_cache_connection),
 ) -> list[AirPortOutGeoSchemas]:
+    """
+    Возвращает список ближайших к заданной точке аэропортов
+    """
     redis_key: str = f"{longitude}:{latitude}"
     all_airports: list[str] = await db_cache.lrange(redis_key, 0, -1)
     if not all_airports:
@@ -151,6 +163,9 @@ async def get_city_name(
     latitude: float = Query(..., description="Широта"),
     longitude: float = Query(..., description="Долгота"),
 ) -> dict[str, str]:
+    """
+    Возвращает наименование населенного пункта по заданным координатам
+    """
     city_info = await get_location_info(latitude, longitude)
 
     if city_info:
