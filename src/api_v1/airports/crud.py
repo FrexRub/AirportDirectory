@@ -15,6 +15,12 @@ from .schemas import AirPortOutGeoSchemas
 
 
 async def get_all_airport(session: AsyncSession) -> list[Row[Any]]:
+    """
+    Возвращает список с данными аэропортов
+    :param session: AsyncSession
+        сессия БД
+    :return: list[Row[Any]]
+    """
     stmt = select(
         Airport.id,
         Airport.name,
@@ -28,6 +34,14 @@ async def get_all_airport(session: AsyncSession) -> list[Row[Any]]:
 
 
 async def get_airport(session: AsyncSession, id_airport: UUID) -> Airport:
+    """
+    Возвращает данные аэропорта по ID
+    :param session: AsyncSession
+        сессия БД
+    :param id_airport: UUID
+        ID аэропорта
+    :return: Airport
+    """
     try:
         airport: Optional[Airport] = await session.get(Airport, id_airport)
     except SQLAlchemyError as exc:
@@ -42,11 +56,15 @@ async def get_airports_nearest(
 ) -> list[AirPortOutGeoSchemas]:
     """
     Поиск ближайших аэропортов от заданной точки, города или аэропорта
-    :param session:
-    :param latitude:
-    :param longitude:
-    :param limit:
-    :return:
+    :param session: AsyncSession
+        сессия БД
+    :param latitude: float
+        Широта
+    :param longitude: float
+        Долгота
+    :param limit: int
+        количество возвращаемых объектов
+    :return: list[AirPortOutGeoSchemas]
     """
     geo = ST_Point(longitude, latitude, srid=4326)
 
