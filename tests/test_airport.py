@@ -59,6 +59,22 @@ async def test_airport_distance(
         "longitude_airport": airport.longitude,
     }
     response = await client.get("api/distance", params=data)
-    print(response.json())
     assert response.status_code == 200
     assert response.json()["distance_kilometers"] == 27.2
+
+
+async def test_airport_nearest(
+    event_loop: asyncio.AbstractEventLoop,
+    client: AsyncClient,
+    test_db: AsyncSession,
+):
+    data = {
+        "latitude": 55.75,
+        "longitude": 37.62,
+        "limit": 3,
+    }
+    response = await client.get("api/nearest", params=data)
+    print(response.json())
+    assert response.status_code == 200
+    assert len(response.json()) == 3
+    assert response.json()[0]["city"] == "Москва"
