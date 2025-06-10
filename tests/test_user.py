@@ -1,12 +1,9 @@
 from httpx import AsyncClient
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
-from sqlalchemy.engine import Result
 import asyncio
 
 from src.models.user import User
-from src.core.config import COOKIE_NAME
+
 
 username = "Bob"
 email = "Bob@mail.ru"
