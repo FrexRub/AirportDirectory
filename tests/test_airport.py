@@ -39,6 +39,26 @@ async def test_airport_get_detail(
 
     data = {"id": airport.id}
     response = await client.get("api/airport", params=data)
-    print(response.json())
     assert response.status_code == 200
     assert response.json()["name"] == "Шереметьево"
+
+
+async def test_airport_distance(
+    event_loop: asyncio.AbstractEventLoop,
+    client: AsyncClient,
+    test_db: AsyncSession,
+):
+    stmt = select(Airport).filter(Airport.name == "Шереметьево")
+    result = await test_db.execute(stmt)
+    airport = result.scalars().one_or_none()
+
+    data = {
+        "latitude_city": 55.75,
+        "longitude_city": 37.62,
+        "latitude_airport": airport.latitude,
+        "longitude_airport": airport.longitude,
+    }
+    response = await client.get("api/distance", params=data)
+    print(response.json())
+    assert response.status_code == 200
+    assert response.json()["distance_kilometers"] == 27.2
