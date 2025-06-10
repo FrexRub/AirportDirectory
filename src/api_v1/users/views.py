@@ -51,6 +51,9 @@ async def get_info_about_me(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user_authorization),
 ) -> UserBaseSchemas:
+    """
+    Возвращает информацию об авторизованном пользователе
+    """
     find_user: Optional[User] = await find_user_by_email(
         session=session, email=user.email
     )
@@ -72,6 +75,9 @@ async def user_login(
     session: AsyncSession = Depends(get_async_session),
     redis: Redis = Depends(get_redis_connection),
 ) -> OutUserSchemas:
+    """
+    Логирование пользователя
+    """
     logger.info(f"start login {data_login.username}")
 
     try:
@@ -135,6 +141,9 @@ async def user_register(
     session: AsyncSession = Depends(get_async_session),
     redis: Redis = Depends(get_redis_connection),
 ) -> OutUserSchemas:
+    """
+    Регистрация пользователе
+    """
     try:
         user: User = await create_user(session=session, user_data=new_user)
     except EmailInUse:
@@ -182,10 +191,6 @@ async def user_register(
 def logout(request: Request, response: Response) -> None:
     """
     Обрабатывает выход пользователя из системы.
-
-    Args:
-        request: Объект запроса FastAPI
-        response: Объект ответа FastAPI
     """
     response.delete_cookie(COOKIE_NAME)
     request.session.clear()
@@ -199,6 +204,9 @@ async def update_user(
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(get_async_session),
 ) -> UserInfoSchemas:
+    """
+    Переписывает данные пользователе
+    """
     try:
         res = await update_user_db(session=session, user=user, user_update=user_update)
     except UniqueViolationError:
@@ -218,6 +226,9 @@ async def update_user_partial(
     user: User = Depends(user_by_id),
     session: AsyncSession = Depends(get_async_session),
 ) -> UserInfoSchemas:
+    """
+    Редактирует данные пользователе
+    """
     try:
         res = await update_user_db(
             session=session, user=user, user_update=user_update, partial=True
