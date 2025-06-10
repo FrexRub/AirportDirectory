@@ -4,7 +4,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - ./tests/.env_test
+      - ./tests/.env
 
   redis_test:
     image: redis

@@ -2,6 +2,8 @@ import asyncio
 from typing import AsyncGenerator, Generator
 
 import pytest_asyncio
+from redis import Redis
+from redis import asyncio as aioredis
 from httpx import AsyncClient
 from sqlalchemy import select, text
 from sqlalchemy.engine import Result
@@ -12,7 +14,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from src.core.database import get_async_session
+from src.core.database import get_async_session, get_cache_connection
 from src.core.jwt_utils import create_hash_password
 from src.utils.add_data_to_db import data_from_files_to_test_db
 from src.models.base import Base
@@ -57,7 +59,28 @@ async def db_session(db_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, Non
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
-def override_get_db(db_session: AsyncSession):
+async def db_redis_cache() -> AsyncGenerator[Redis, None]:
+    async with aioredis.from_url(
+        "redis://localhost",
+        encoding="utf8",
+        decode_responses=True,
+    ) as redis_cash:
+        yield redis_cash
+
+
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
+async def override_get_redis_cache(db_redis_cache: Redis):
+    async def _override_get_db_redis_cache():
+        try:
+            yield db_redis_cache
+        finally:
+            db_redis_cache.close()  # Закрываем сессию после использования
+
+    return _override_get_db_redis_cache
+
+
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
+async def override_get_db(db_session: AsyncSession):
     async def _override_get_db():
         try:
             yield db_session
@@ -68,8 +91,11 @@ def override_get_db(db_session: AsyncSession):
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
-async def client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
+async def client(
+    override_get_db, override_get_redis_cache
+) -> AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides[get_async_session] = override_get_db
+    app.dependency_overrides[get_cache_connection] = override_get_redis_cache
     async with AsyncClient(app=app, base_url="http://test") as c:
         yield c
     app.dependency_overrides.clear()  # Важно

@@ -2,7 +2,7 @@
 
   on:
     push:
-      branches: [ main, frontend ]
+      branches: [ main ]
     pull_request:
       branches: [ main ]
     workflow_dispatch:
@@ -21,6 +21,7 @@
             python -m pip install --upgrade pip poetry
             poetry config virtualenvs.create false --local
             poetry install --no-root
+            pip install openai==1.55.3 httpx==0.27.2 --force-reinstall
         - name: Build the test BD
           run: docker compose -f docker-compose-test.yml up -d
         - name: Run tests
