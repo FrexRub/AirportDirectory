@@ -55,6 +55,21 @@ async def test_user_unique_email(
     assert response.status_code == 400
 
 
+async def test_user_bad_password(
+    event_loop: asyncio.AbstractEventLoop,
+    client: AsyncClient,
+    test_user: User,
+):
+    user = {
+        "username": username,
+        "email": email,
+        "password": "123",
+    }
+    response = await client.post("/api/users/register", json=user)
+    assert response.json()["detail"][0]["msg"] == "Value error, Invalid password"
+    assert response.status_code == 422
+
+
 #
 #
 # async def test_user_put(

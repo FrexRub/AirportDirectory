@@ -1,0 +1,15 @@
+services:
+  db_test:
+    image: postgis/postgis:16-3.5
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./tests/.env
+
+  redis_test:
+    image: redis
+    command: --port 6379
+    expose:
+      - 6379
+    ports:
+      - "6379:6379"
