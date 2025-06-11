@@ -15,6 +15,5 @@ COPY alembic.ini /app
 COPY alembic /app/alembic
 COPY src /app/src
 COPY docker /app/docker
-COPY data /app/data
 
 RUN chmod a+x docker/*.sh

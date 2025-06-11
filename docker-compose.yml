@@ -32,6 +32,7 @@ services:
       - .env
     volumes:
       - .:/app
+      - ./data:/app/data
     depends_on:
       - db_air
       - redis_app
@@ -53,6 +54,7 @@ services:
 
 volumes:
   postgres_volume:
+  data:
 
 networks:
   net:
