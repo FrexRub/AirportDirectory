@@ -21,18 +21,18 @@ def configure_logging(level: int = logging.INFO) -> None:
 
 
 class SettingConn(BaseSettings):
-    postgres_user: str
-    postgres_password: str
-    postgres_db: str
+    postgres_user: str = "test"
+    postgres_password: str = "test"
+    postgres_db: str = "testdb"
     postgres_host: str = "localhost"
-    postgres_port: int
+    postgres_port: int = 5432
 
     REDIS_HOST: str = "localhost"
-    REDIS_PORT: int
+    REDIS_PORT: int = 6379
 
-    SECRET_KEY: str
-    GOOGLE_CLIENT_ID: str
-    GOOGLE_CLIENT_SECRET: str
+    SECRET_KEY: str = "test"
+    GOOGLE_CLIENT_ID: str = "test"
+    GOOGLE_CLIENT_SECRET: str = "test"
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
 
