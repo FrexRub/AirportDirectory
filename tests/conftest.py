@@ -71,10 +71,7 @@ async def db_redis_cache() -> AsyncGenerator[Redis, None]:
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
 async def override_get_redis_cache(db_redis_cache: Redis):
     async def _override_get_db_redis_cache():
-        try:
-            yield db_redis_cache
-        finally:
-            db_redis_cache.close()  # Закрываем сессию после использования
+        yield db_redis_cache
 
     return _override_get_db_redis_cache
 
