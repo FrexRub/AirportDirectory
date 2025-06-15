@@ -8,8 +8,9 @@ createApp({
         const isLoginForm = ref(true);
         const selectedAirport = ref(null);
         const nearestdAirport = ref(null);
+        const nearestAirportsCity = ref(null);
+        const nearestAirportsLoading = ref(false);
         const passwordError = ref('');
-        const airports_nearest = ref([])
         const userCity = ref(null);
         const geoLoading = ref(false);
         const geoError = ref(null);
@@ -92,6 +93,7 @@ createApp({
         // Отправка геоданных на сервер и получение города
         const sendGeoData = async (latitude, longitude) => {
             try {
+                console.log("Start sendGeoData", latitude, longitude)
                 geoLoading.value = true;
                 geoError.value = null;
 
@@ -124,6 +126,7 @@ createApp({
 
         // Получение геолокации пользователя
         const getUserLocation = () => {
+            console.log("Start getUserLocation", latitude.value, longitude.value)
             if (!navigator.geolocation) {
                 geoError.value = "Геолокация не поддерживается";
                 return;
@@ -133,17 +136,21 @@ createApp({
                 (position) => {
                     latitude.value = position.coords.latitude;
                     longitude.value = position.coords.longitude;
+                    console.log("Set geolocat", latitude.value, longitude.value);
                     sendGeoData(
                         latitude.value,
                         longitude.value
                     );
+                    getNearestAirports();
                 },
                 (err) => {
                     // При отсутствии данных передаем гео данные Москвы (установлены по умолчанию)
+                    console.log("Error geolocat", latitude.value, longitude.value);
                     sendGeoData(
                         latitude.value,
                         longitude.value
                     );
+                    getNearestAirports();
                 },
                 { 
                     enableHighAccuracy: true,
@@ -152,12 +159,6 @@ createApp({
             );
         };
 
-        // Вычисляем общее количество страниц
-        // const totalPages = computed(() => {
-        //     return airports.value.total > 0 
-        //         ? Math.ceil(airports.value.total / airports.value.size)
-        //         : 1; 
-        // });
 
         const fetchAirports = async (page = 1) => {
             try {
@@ -277,9 +278,6 @@ createApp({
 
             const data_nearest = await response_nearest.json();
             nearestdAirport.value = data_nearest;
-            
-            // airports_nearest.value = data_nearest;
-            // console.log("Данные об аэропортах:", airports_nearest.value);
 
             selectedAirport.value = airport_by_id;
             showDetailsModal.value = true;
@@ -441,6 +439,51 @@ createApp({
             }
         };
 
+
+        // метод получения ближайших аэропортов
+        async function getNearestAirports() {
+            nearestAirportsLoading.value = true;
+            try {
+           // Вычисляем расстояние от текущего города до трех ближайших аэропортов
+            console.log("Start getNearestAirports", latitude.value, longitude.value)
+            const params_city = new URLSearchParams({
+                latitude: latitude.value,
+                longitude: longitude.value,
+                limit: 3,
+            });
+
+            const response_nearest_city = await fetch(`http://localhost:8000/api/nearest?${params_city.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+                            
+            if (!response_nearest_city.ok) {
+                throw new Error(`Ошибка: ${response_nearest_city.status}`);
+            }
+
+            const data_nearest_city = await response_nearest_city.json();
+            nearestAirportsCity.value = data_nearest_city;
+
+
+            console.log("Данные о ближайших к городу аэропортах получены:", nearestAirportsCity.value);
+
+
+            } catch (error) {
+                console.error('Ошибка при загрузке ближайших аэропортов:', error);
+            } finally {
+                nearestAirportsLoading.value = false;
+            }
+        }
+
+        // Отслеживаем изменение города
+        // watch(userCity, (newCity) => {
+        //     if (newCity) {
+        //         getNearestAirports(newCity);
+        //     }
+        // });
+
         // Загружаем данные сразу при запуске
         onMounted(() => {
             getUserLocation();
@@ -453,6 +496,8 @@ createApp({
             isLoginForm,
             selectedAirport,
             nearestdAirport,
+            nearestAirportsCity,
+            nearestAirportsLoading,
             isUser,
             authData,
             passwordError,
@@ -466,7 +511,6 @@ createApp({
             userData,
             userLoading,
             distance,
-            airports_nearest,
             currentPage,
             totalPages,
             prevPage,

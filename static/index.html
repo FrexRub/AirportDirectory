@@ -96,19 +96,56 @@
         <!-- Основной контент -->
         <div class="container">
             <div class="row">
-                <div class="col-md-4" v-for="airport in airports" :key="airport.id">
-                    <div class="card airport-card-main">
-                        <img 
-                            :src="`./img/logotip/${airport.img_top}`" 
-                            class="img-fluid mb-3 w-50"
-                            :alt="airport.name"
-                        >
-                        <div class="card-body">
-                            <h5 class="card-title">{{ airport.name }}</h5>
-                            <p class="card-text text-muted">{{ airport.address }}</p>
-                            <p class="card-text">{{ airport.short_description }}</p>
-                            <button @click="showAirportDetails(airport)" class="btn btn-primary">Подробнее</button>
+                 <!-- Карточки аэропортов -->
+                <div class="col-md-9">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4" v-for="airport in airports" :key="airport.id">
+                            <div class="card airport-card-main mb-4">
+                                <img 
+                                    :src="`./img/logotip/${airport.img_top}`" 
+                                    class="card-img-top"
+                                    :alt="airport.name"
+                                >
+                                <div class="card-body">
+                                    <div class="card-content">
+                                        <h5 class="card-title">{{ airport.name }}</h5>
+                                        <p class="card-text text-muted">{{ airport.address }}</p>
+                                        <p class="card-text">{{ airport.short_description }}</p>
+                                    </div>
+                                    <button @click="showAirportDetails(airport)" class="btn btn-primary">Подробнее</button>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Боковая панель с ближайшими аэропортами -->
+                <div class="col-md-3">
+                    <div class="nearest-airports sticky-top" style="top: 80px;">
+                        <h5><i class="bi bi-geo-alt-fill"></i> Ближайшие аэропорты</h5>
+
+                        <div class="city-header">
+                            <i class="bi bi-building"></i> {{ userCity }}
+                        </div>
+                        <div v-for="airport in nearestAirportsCity" 
+                            :key="airport.id" 
+                            class="nearest-airport-item"
+                            :class="{ 'active': selectedAirport && selectedAirport.id === airport.id }"
+                            @click="showAirportDetails(airport)">
+
+                            <img 
+                                :src="`./img/logotip/${airport.img_top}`" 
+                                class="airport-avatar"
+                                :alt="airport.name"
+                            >
+                            <div class="airport-info">
+                                <div class="airport-name">{{ airport.name }}</div>
+                                <div class="airport-distance">
+                                    <i class="bi bi-signpost"></i> {{ airport.distance.toFixed(2) }} км
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -193,12 +230,21 @@
                 <div class="airport-description">
                     <p>{{ selectedAirport.description }}</p>
                     <p>{{ selectedAirport.address }}</p>
-                    <a 
-                        :href="selectedAirport.url" 
-                        target="_blank" 
-                        class="online-board-link">
-                        Сайт аэропорта
-                    </a>
+                    <div class="airport-links">
+                        <a 
+                            :href="selectedAirport.url" 
+                            target="_blank" 
+                            class="online-board-link">
+                            Сайт аэропорта
+                        </a>
+                        <a 
+                            v-if="selectedAirport.online_tablo"
+                            :href="selectedAirport.online_tablo" 
+                            target="_blank" 
+                            class="online-board-link">
+                            Онлайн табло
+                        </a>
+                    </div>
                 </div>
 
                 <footer class="card-footer">

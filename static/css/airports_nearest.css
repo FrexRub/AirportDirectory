@@ -1,0 +1,87 @@
+.nearest-airports {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.nearest-airport-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease; /* Добавляем плавный переход */
+    cursor: pointer; /* Меняем курсор при наведении */
+}
+.nearest-airport-item:last-child {
+    margin-bottom: 0;
+}
+.nearest-airport-item:hover {
+    background-color: #f0f7ff; /* Легкий голубой фон при наведении */
+    transform: translateX(5px); /* Сдвигаем вправо */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Усиливаем тень */
+}
+.nearest-airport-item.active {
+    background-color: #e0e0e0; /* Стиль для активного элемента */
+}
+.airport-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+}
+.airport-info {
+    flex-grow: 1;
+}
+.airport-distance {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+.city-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #dee2e6;
+}
+.card-img-top {
+    height: 150px;
+    object-fit: cover;
+}
+.airport-card-main {
+    height: 100%;
+    transition: transform 0.3s;
+}
+.airport-card-main:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+/* Новые стили для правого расположения */
+.main-content-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+.airports-grid {
+    flex: 0 0 75%;
+    max-width: 75%;
+    padding-right: 15px;
+}
+.nearest-airports-container {
+    flex: 0 0 25%;
+    max-width: 25%;
+    padding-left: 15px;
+}
+@media (max-width: 992px) {
+    .airports-grid,
+    .nearest-airports-container {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 0;
+    }
+    .nearest-airports-container {
+        order: -1;
+        margin-bottom: 20px;
+    }
+}
