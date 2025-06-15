@@ -37,6 +37,7 @@ class AirPortOutAllSchemas(BaseModel):
     img_top: str = Field(description="Имя файла логотипа аэропорта")
     img_airport: str = Field(description="Имя файла фотографии аэропорта")
     time_zone: str
+    online_tablo: str
 
     @property
     @computed_field(description="Полный URL изображения логотипа")
@@ -57,6 +58,6 @@ class AirPortOutGeoSchemas(BaseModel):
     city: str
     latitude: float
     longitude: float
-    # img_top: str = Field(description="Имя файла логотипа аэропорта")
+    img_top: str
     # img_airport: str = Field(description="Имя файла фотографии аэропорта")
     distance: Optional[float] = Field(None, description="Distance in meters")
