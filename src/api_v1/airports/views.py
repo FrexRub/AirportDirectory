@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.airports.crud import get_airport, get_airports_nearest, get_all_airport
-from src.core.config import configure_logging
+from src.core.config import configure_logging, CACHE_EXP
 from src.core.database import get_async_session, get_cache_connection
 from src.core.exceptions import ExceptDB, NotFindData
 from src.models.airport import Airport
@@ -48,6 +48,7 @@ async def get_airports_all(
                 "short_description": short_description,
             }
             await db_cache.rpush("airports", json.dumps(airport_data))
+            await db_cache.expire("airports", CACHE_EXP)
         logger.info("Write in cache info about airports")
     else:
         logger.info("Read from cache info about airports")
@@ -87,7 +88,7 @@ async def get_airport_by_id(
             airport_json_model: str = await model_to_json(
                 pydantic_model=AirPortOutAllSchemas, object=airport_obj
             )
-            await db_cache.set(str(id), airport_json_model, ex=3600)
+            await db_cache.set(str(id), airport_json_model, ex=CACHE_EXP)
             logger.info("Write in cache info about airport with id %s", str(id))
     else:
         logger.info("Read from cache info about airport with id %s", str(id))
@@ -135,6 +136,7 @@ async def get_nearest_airports(
     """
     Возвращает список ближайших к заданной точке аэропортов
     """
+    logger.info(f"Start find nearest airports by {latitude=} {longitude=}")
     redis_key: str = f"{longitude}:{latitude}"
     all_airports: list[str] = await db_cache.lrange(redis_key, 0, -1)
     if not all_airports:
@@ -146,10 +148,10 @@ async def get_nearest_airports(
         )
         for airport in airports_nearest:
             await db_cache.rpush(redis_key, airport.model_dump_json())
+            await db_cache.expire(redis_key, CACHE_EXP)
         logger.info("Write in cache info about airports nearest")
     else:
         logger.info("Read from cache info about airports nearest")
-        # all_airports: list[str] = await db_cache.lrange(redis_key, 0, -1)
         airports_nearest: list[AirPortOutGeoSchemas] = list()  # type: ignore
         for airport_json in all_airports:
             airport_dict: dict[str, Any] = json.loads(airport_json)

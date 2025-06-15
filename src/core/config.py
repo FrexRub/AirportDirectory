@@ -10,6 +10,7 @@ DIR_LOGOTIP = "logotip"
 DIR_FOTO = "foto"
 
 COOKIE_NAME = "bonds_airport"
+CACHE_EXP = 300  # 3600
 
 
 def configure_logging(level: int = logging.INFO) -> None:
