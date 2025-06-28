@@ -15,7 +15,7 @@
             <div class="container">
                 <!-- Логотип и бренд -->
                 <a class="navbar-brand" href="#">Аэропорты России</a>
-                
+
                 <!-- Геолокация и пагинация (центр) -->
                 <div class="d-flex align-items-center mx-auto">
                     <!-- Геолокация -->
@@ -28,7 +28,7 @@
                             <span class="spinner-border spinner-border-sm"></span>
                         </span>
                     </div>
-                    
+
                     <!-- Компактная пагинация -->
                     <div class="pagination-container">
                         <ul class="pagination pagination-sm mb-0">
@@ -69,12 +69,12 @@
                     <h4 class="mb-0">Профиль пользователя</h4>
                     <button @click="showUserModal = false" class="btn-close"></button>
                 </div>
-                
+
                 <div v-if="userLoading" class="text-center py-4">
                     <div class="spinner-border text-primary"></div>
                     <p class="mt-2">Загрузка данных...</p>
                 </div>
-                
+
                 <div v-else-if="userData">
                     <div class="mb-3">
                         <label class="form-label text-muted">Имя</label>
@@ -86,7 +86,7 @@
                     </div>
                     <button @click="showUserModal = false" class="btn btn-danger w-100">Закрыть окно</button>
                 </div>
-                
+
                 <div v-else class="alert alert-danger">
                     Не удалось загрузить данные пользователя
                 </div>
@@ -101,8 +101,8 @@
                     <div class="row">
                         <div class="col-md-6 col-lg-4" v-for="airport in airports" :key="airport.id">
                             <div class="card airport-card-main mb-4">
-                                <img 
-                                    :src="`./img/logotip/${airport.img_top}`" 
+                                <img
+                                    :src="`./img/logotip/${airport.img_top}`"
                                     class="card-img-top"
                                     :alt="airport.name"
                                 >
@@ -118,7 +118,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Боковая панель с ближайшими аэропортами -->
                 <div class="col-md-3">
                     <div class="nearest-airports sticky-top" style="top: 80px;">
@@ -127,14 +127,14 @@
                         <div class="city-header">
                             <i class="bi bi-building"></i> {{ userCity }}
                         </div>
-                        <div v-for="airport in nearestAirportsCity" 
-                            :key="airport.id" 
+                        <div v-for="airport in nearestAirportsCity"
+                            :key="airport.id"
                             class="nearest-airport-item"
                             :class="{ 'active': selectedAirport && selectedAirport.id === airport.id }"
                             @click="showAirportDetails(airport)">
 
-                            <img 
-                                :src="`./img/logotip/${airport.img_top}`" 
+                            <img
+                                :src="`./img/logotip/${airport.img_top}`"
                                 class="airport-avatar"
                                 :alt="airport.name"
                             >
@@ -150,7 +150,7 @@
                 </div>
             </div>
         </div>
-        
+
 
         <!-- Модальное окно авторизации/регистрации -->
         <div class="modal" :class="{ 'show': showAuthModal }" style="display: block;" v-if="showAuthModal">
@@ -177,10 +177,10 @@
 
                             <div class="mb-3" v-if="!isLoginForm">
                                 <label class="form-label">Подтвердите пароль</label>
-                                <input 
-                                  v-model="authData.confirmPassword" 
-                                  type="password" 
-                                  class="form-control" 
+                                <input
+                                  v-model="authData.confirmPassword"
+                                  type="password"
+                                  class="form-control"
                                   required
                                 >
                                 <div v-if="passwordError" class="text-danger mt-1">{{ passwordError }}</div>
@@ -214,33 +214,33 @@
                 <p><strong>Временной пояс:</strong> {{ selectedAirport.time_zone }}</p>
                 <p v-if="distance" class="distance-info">
                     <i class="bi bi-signpost-split"></i>
-                    <strong>Расстояние до аэропорта:</strong> 
+                    <strong>Расстояние до аэропорта:</strong>
                     {{ distance.kilometers.toFixed(2) }} км.
                 </p>
                 <p v-else class="distance-info">
                     <strong>Расстояние: </strong> вычисляется...
                 </p>
             </div>
-        
+
             <div class="airport-detail-content">
-                <img :src="`./img/foto/${selectedAirport.img_airport}`" 
-                    class="airport-detail-image" 
+                <img :src="`./img/foto/${selectedAirport.img_airport}`"
+                    class="airport-detail-image"
                     :alt="selectedAirport.name"
                 >
                 <div class="airport-description">
                     <p>{{ selectedAirport.description }}</p>
                     <p>{{ selectedAirport.address }}</p>
                     <div class="airport-links">
-                        <a 
-                            :href="selectedAirport.url" 
-                            target="_blank" 
+                        <a
+                            :href="selectedAirport.url"
+                            target="_blank"
                             class="online-board-link">
                             Сайт аэропорта
                         </a>
-                        <a 
+                        <a
                             v-if="selectedAirport.online_tablo"
-                            :href="selectedAirport.online_tablo" 
-                            target="_blank" 
+                            :href="selectedAirport.online_tablo"
+                            target="_blank"
                             class="online-board-link">
                             Онлайн табло
                         </a>
