@@ -83,9 +83,7 @@ async def create_user(session: AsyncSession, user_data: UserCreateSchemas) -> Us
     :return: возвращает нового пользователя
     """
     logger.info("Start create user with email %s" % user_data.email)
-    result: Optional[User] = await find_user_by_email(
-        session=session, email=user_data.email
-    )
+    result: Optional[User] = await find_user_by_email(session=session, email=user_data.email)
     if result:
         raise EmailInUse("The email address is already in use")
 
@@ -103,9 +101,7 @@ async def create_user(session: AsyncSession, user_data: UserCreateSchemas) -> Us
         return new_user
 
 
-async def create_user_without_password(
-    session: AsyncSession, user_data: UserBaseSchemas
-) -> User:
+async def create_user_without_password(session: AsyncSession, user_data: UserBaseSchemas) -> User:
     """
     :param session: сессия
     :type session: AsyncSession
@@ -114,9 +110,7 @@ async def create_user_without_password(
     :rtype: User
     :return: возвращает нового пользователя
     """
-    logger.info(
-        "Start create user (without a password) with email %s" % user_data.email
-    )
+    logger.info("Start create user (without a password) with email %s" % user_data.email)
 
     try:
         new_user: User = User(**user_data.model_dump())
@@ -163,16 +157,12 @@ async def update_user_db(
     """
     logger.info("Start update user")
     try:
-        for name, value in user_update.model_dump(
-            exclude_unset=partial
-        ).items():  # Преобразовываем объект в словарь
+        for name, value in user_update.model_dump(exclude_unset=partial).items():  # Преобразовываем объект в словарь
             setattr(user, name, value)
         await session.commit()
     except IntegrityError:
         await session.rollback()
-        raise UniqueViolationError(
-            "Duplicate key value violates unique constraint users_email_key"
-        )
+        raise UniqueViolationError("Duplicate key value violates unique constraint users_email_key")
     return user
 
 

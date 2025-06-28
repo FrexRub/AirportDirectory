@@ -23,23 +23,16 @@ async def current_user_authorization(
     redis: Redis = Depends(get_redis_connection),
     session: AsyncSession = Depends(get_async_session),
 ) -> Optional[User]:
-
     if authorization_header is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized")
 
     if "Bearer " not in authorization_header:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized")
 
     token = authorization_header.replace("Bearer ", "")
 
     if token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized")
 
     try:
         payload = await decode_jwt(token)

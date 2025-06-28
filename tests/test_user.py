@@ -1,9 +1,8 @@
-from httpx import AsyncClient
-
 import asyncio
 
-from src.models.user import User
+from httpx import AsyncClient
 
+from src.models.user import User
 
 username = "Bob"
 email = "Bob@mail.ru"
@@ -24,9 +23,7 @@ async def test_register(
     assert response.json()["user"]["full_name"] == username
 
 
-async def test_authorization_user(
-    event_loop: asyncio.AbstractEventLoop, client: AsyncClient, test_user_admin: User
-):
+async def test_authorization_user(event_loop: asyncio.AbstractEventLoop, client: AsyncClient, test_user_admin: User):
     response = await client.post(
         "/api/users/login",
         json={"username": "testuser@example.com", "password": "1qaz!QAZ"},

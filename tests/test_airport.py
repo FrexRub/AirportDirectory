@@ -1,9 +1,9 @@
-from httpx import AsyncClient
-
 import asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.engine import Result
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.airport import Airport
 

@@ -2,9 +2,9 @@ import asyncio
 from typing import AsyncGenerator, Generator
 
 import pytest_asyncio
+from httpx import AsyncClient
 from redis import Redis
 from redis import asyncio as aioredis
-from httpx import AsyncClient
 from sqlalchemy import select, text
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import (
@@ -16,10 +16,10 @@ from sqlalchemy.ext.asyncio import (
 
 from src.core.database import get_async_session, get_cache_connection
 from src.core.jwt_utils import create_hash_password
-from src.utils.add_data_to_db import data_from_files_to_test_db
+from src.main import app
 from src.models.base import Base
 from src.models.user import User
-from src.main import app
+from src.utils.add_data_to_db import data_from_files_to_test_db
 
 SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://test:test@localhost:5432/testdb"
 
@@ -88,9 +88,7 @@ async def override_get_db(db_session: AsyncSession):
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
-async def client(
-    override_get_db, override_get_redis_cache
-) -> AsyncGenerator[AsyncClient, None]:
+async def client(override_get_db, override_get_redis_cache) -> AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides[get_async_session] = override_get_db
     app.dependency_overrides[get_cache_connection] = override_get_redis_cache
     async with AsyncClient(app=app, base_url="http://test") as c:

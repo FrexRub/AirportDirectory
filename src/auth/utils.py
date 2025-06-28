@@ -15,9 +15,7 @@ async def get_yandex_user_data(access_token):
     params = {"format": "json"}
     headers = {"Authorization": f"OAuth {access_token}"}
     async with aiohttp.ClientSession() as session:
-        async with session.get(
-            "https://login.yandex.ru/info", params=params, headers=headers
-        ) as response:
+        async with session.get("https://login.yandex.ru/info", params=params, headers=headers) as response:
             if response.status == 200:
                 return await response.json()
             else:

@@ -18,9 +18,7 @@ class Airport(Base):
     internal_code: Mapped[str] = mapped_column(String(4))
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
-    geo: Mapped[Geometry] = mapped_column(
-        Geometry(geometry_type="POINT", srid=4326), nullable=False
-    )
+    geo: Mapped[Geometry] = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=False)
     img_top: Mapped[str]
     img_airport: Mapped[str]
     time_zone: Mapped[str]

@@ -18,5 +18,10 @@ repos:
       # Run the linter.
       - id: ruff
         args: [ --fix ]
+        types: [ python ]
+        files: ^src/
+
       # Run the formatter.
       - id: ruff-format
+        types: [ python ]
+        files: ^src/

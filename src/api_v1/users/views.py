@@ -54,9 +54,7 @@ async def get_info_about_me(
     """
     Возвращает информацию об авторизованном пользователе
     """
-    find_user: Optional[User] = await find_user_by_email(
-        session=session, email=user.email
-    )
+    find_user: Optional[User] = await find_user_by_email(session=session, email=user.email)
     if find_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -65,9 +63,7 @@ async def get_info_about_me(
     return UserBaseSchemas(**find_user.__dict__)
 
 
-@router.post(
-    "/login", response_model=OutUserSchemas, status_code=status.HTTP_202_ACCEPTED
-)
+@router.post("/login", response_model=OutUserSchemas, status_code=status.HTTP_202_ACCEPTED)
 async def user_login(
     response: Response,
     request: Request,
@@ -88,9 +84,7 @@ async def user_login(
             detail=f"The user with the username: {data_login.username} not found",
         )
 
-    if await validate_password(
-        password=data_login.password, hashed_password=user.hashed_password
-    ):
+    if await validate_password(password=data_login.password, hashed_password=user.hashed_password):
         access_token: str = await create_jwt(
             user=str(user.id),
             expire_minutes=setting.auth_jwt.access_token_expire_minutes,
@@ -117,9 +111,7 @@ async def user_login(
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(
-                id=str(user.id), email=data_login.username, full_name=user.full_name
-            ),
+            user=UserInfoSchemas(id=str(user.id), email=data_login.username, full_name=user.full_name),
         )
     else:
         raise HTTPException(
@@ -181,9 +173,7 @@ async def user_register(
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(
-                id=str(user.id), email=new_user.email, full_name=new_user.full_name
-            ),
+            user=UserInfoSchemas(id=str(user.id), email=new_user.email, full_name=new_user.full_name),
         )
 
 
@@ -196,9 +186,7 @@ def logout(request: Request, response: Response) -> None:
     request.session.clear()
 
 
-@router.put(
-    "/{id_user}/", response_model=UserInfoSchemas, status_code=status.HTTP_200_OK
-)
+@router.put("/{id_user}/", response_model=UserInfoSchemas, status_code=status.HTTP_200_OK)
 async def update_user(
     user_update: UserUpdateSchemas,
     user: User = Depends(user_by_id),
@@ -218,9 +206,7 @@ async def update_user(
         return UserInfoSchemas(**res.__dict__)
 
 
-@router.patch(
-    "/{id_user}/", response_model=UserInfoSchemas, status_code=status.HTTP_200_OK
-)
+@router.patch("/{id_user}/", response_model=UserInfoSchemas, status_code=status.HTTP_200_OK)
 async def update_user_partial(
     user_update: UserUpdatePartialSchemas,
     user: User = Depends(user_by_id),
@@ -230,9 +216,7 @@ async def update_user_partial(
     Редактирует данные пользователе
     """
     try:
-        res = await update_user_db(
-            session=session, user=user, user_update=user_update, partial=True
-        )
+        res = await update_user_db(session=session, user=user, user_update=user_update, partial=True)
     except UniqueViolationError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

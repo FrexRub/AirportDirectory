@@ -47,9 +47,7 @@ async def user_login_by_password(
             detail=f"The user with the username: {data_login.email} not found",
         )
 
-    if await validate_password(
-        password=data_login.password, hashed_password=user.hashed_password.encode()
-    ):
+    if await validate_password(password=data_login.password, hashed_password=user.hashed_password.encode()):
         access_token: str = await create_jwt(
             user=str(user.id),
             expire_minutes=setting.auth_jwt.access_token_expire_minutes,
@@ -112,9 +110,7 @@ async def auth_yandex(
         )
         logger.info("User with email %s created", user_email)
 
-    access_token: str = await create_jwt(
-        user=str(user.id), expire_minutes=setting.auth_jwt.access_token_expire_minutes
-    )
+    access_token: str = await create_jwt(user=str(user.id), expire_minutes=setting.auth_jwt.access_token_expire_minutes)
     refresh_token: str = await create_jwt(
         user=str(user.id), expire_minutes=setting.auth_jwt.refresh_token_expire_minutes
     )
@@ -146,6 +142,4 @@ def welcome(request: Request):
     user = request.session.get("user")
     if not user:
         return RedirectResponse("/")
-    return templates.TemplateResponse(
-        name="welcome.html", context={"request": request, "user": user}
-    )
+    return templates.TemplateResponse(name="welcome.html", context={"request": request, "user": user})

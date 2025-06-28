@@ -52,9 +52,7 @@ async def data_from_files_to_db() -> None:
     df = pd.read_excel(folder_path / FILE_NAME)
     df = df.dropna(how="any")
 
-    all_data: list[dict[str, any]] = df.to_dict(
-        "records"
-    )  # Данные в виде списка словарей
+    all_data: list[dict[str, any]] = df.to_dict("records")  # Данные в виде списка словарей
 
     async with async_session_maker() as session:
         for i_data in all_data:
@@ -67,9 +65,7 @@ async def data_from_files_to_db() -> None:
                 session.add(airport)
                 logger.info("Airport named %s added to the database" % i_data["name"])
             else:
-                logger.info(
-                    "The airport named %s is already in the database" % i_data["name"]
-                )
+                logger.info("The airport named %s is already in the database" % i_data["name"])
         await session.commit()
 
 
