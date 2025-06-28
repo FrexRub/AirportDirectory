@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.airports.crud import get_airport, get_airports_nearest, get_all_airport
-from src.core.config import configure_logging, CACHE_EXP
+from src.core.config import CACHE_EXP, configure_logging
 from src.core.database import get_async_session, get_cache_connection
 from src.core.exceptions import ExceptDB, NotFindData
 from src.models.airport import Airport
@@ -85,9 +85,7 @@ async def get_airport_by_id(
                 detail=f"{exp}",
             )
         else:
-            airport_json_model: str = await model_to_json(
-                pydantic_model=AirPortOutAllSchemas, object=airport_obj
-            )
+            airport_json_model: str = await model_to_json(pydantic_model=AirPortOutAllSchemas, object=airport_obj)
             await db_cache.set(str(id), airport_json_model, ex=CACHE_EXP)
             logger.info("Write in cache info about airport with id %s", str(id))
     else:
@@ -109,16 +107,10 @@ async def get_distance(
     """
     Возвращает расстояние от города до аэропорта
     """
-    geo_city: Union[Geometry, ST_Point] = ST_Point(
-        longitude_city, latitude_city, srid=4326
-    )
-    geo_airport: Union[Geometry, ST_Point] = ST_Point(
-        longitude_airport, latitude_airport, srid=4326
-    )
+    geo_city: Union[Geometry, ST_Point] = ST_Point(longitude_city, latitude_city, srid=4326)
+    geo_airport: Union[Geometry, ST_Point] = ST_Point(longitude_airport, latitude_airport, srid=4326)
 
-    distance: float = await session.scalar(
-        select(ST_DistanceSphere(geo_city, geo_airport))
-    )  # результат в метрах
+    distance: float = await session.scalar(select(ST_DistanceSphere(geo_city, geo_airport)))  # результат в метрах
     distance_km: float = round(distance / 1000, 2)
     distance_meters: float = round(distance, 2)
 
@@ -148,7 +140,8 @@ async def get_nearest_airports(
         )
         for airport in airports_nearest:
             await db_cache.rpush(redis_key, airport.model_dump_json())
-            await db_cache.expire(redis_key, CACHE_EXP)
+
+        await db_cache.expire(redis_key, CACHE_EXP)
         logger.info("Write in cache info about airports nearest")
     else:
         logger.info("Read from cache info about airports nearest")
