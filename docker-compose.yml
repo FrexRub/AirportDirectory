@@ -1,0 +1,77 @@
+services:
+  db_air:
+    container_name: db_container
+    image: postgis/postgis:16-3.5
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - net
+
+  redis_app:
+    image: redis
+    command: --port 6379
+    expose:
+      - 6379
+    networks:
+      - net
+
+  app:
+    build:
+      dockerfile: ./Dockerfile
+    command: ["docker/app.sh"]
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    depends_on:
+      - db_air
+      - redis_app
+    networks:
+      - net
+
+  nginx:
+    container_name: airport-nginx
+    build: ./nginx
+    volumes:
+      - ./var/log/nginx:/var/log/nginx
+      - ./static:/usr/share/nginx/html/static
+    ports:
+      - 80:80
+    depends_on:
+      - app
+    networks:
+      - net
+
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4:7
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - net
+
+volumes:
+  postgres_volume:
+  pgadmin-data:
+  data:
+
+networks:
+  net:
+    driver: bridge
