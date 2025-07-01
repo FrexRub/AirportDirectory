@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgis/postgis:16-3.5
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+
+  redis:
+    image: redis
+    command: --port 6379
+    expose:
+      - 6379
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres:

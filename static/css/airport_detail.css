@@ -1,0 +1,212 @@
+/* Основной контейнер */
+.airport-detail {
+  /* Размеры - 90% viewport с минимальными/максимальными ограничениями */
+  width: 90vw;
+  height: 90vh;
+  min-width: 300px;          /* Минимальная ширина */
+  max-width: 1600px;         /* Максимальная ширина для очень широких экранов */
+  min-height: 500px;         /* Минимальная высота */
+
+  /* Позиционирование по центру */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* Стилизация */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3); /* Более заметная тень */
+  padding: 2rem;
+  overflow-y: auto;          /* Прокрутка по вертикали при необходимости */
+  z-index: 1050;
+
+  /* Плавные переходы */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* Градиентная рамка для акцента */
+  border: 1px solid #e0e0e0;
+  border-image: linear-gradient(to right, #e0e0e0, #f5f5f5, #e0e0e0) 1;
+
+  /* Адаптация для мобильных устройств */
+  @media (max-width: 992px) {
+    width: 95vw;
+    height: 95vh;
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    width: 98vw;
+    height: 98vh;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+}
+
+/* Шапка модального окна */
+.airport-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.airport-detail-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #2c3e50;
+}
+
+/* Контент в две колонки */
+.airport-detail-content {
+  display: flex;           /* Используем flex вместо grid */
+  flex-wrap: wrap;         /* Позволяет элементам переноситься */
+  gap: 1.5rem;
+  align-items: flex-start; /* Выравнивание по верху */
+}
+
+.airport-detail-image {
+  width: 250px;           /* Фиксированная ширина */
+  height: 180px;          /* Фиксированная высота */
+  object-fit: cover;      /* Заполнение области с сохранением пропорций */
+  border-radius: 8px;
+  margin-right: 20px;     /* Отступ справа */
+  margin-bottom: 15px;    /* Отступ снизу */
+  flex-shrink: 0;         /* Запрещаем уменьшение размера */
+}
+
+/* Блок с информацией */
+.airport-detail-info p {
+  margin-bottom: 0.8rem;
+  line-height: 1.6;
+}
+
+.airport-description {
+    flex: 1; /* Takes remaining space */
+    min-width: 300px; /* Ensures description has enough space before wrapping */
+}
+
+.iata-code {
+    font-size: 1.5em;
+    font-weight: 700;
+    background-color: #ffd700; /* Gold */
+    color: #004a99;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Стиль для блока расстояния */
+.distance-info {
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Кнопка закрытия */
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6c757d;
+}
+
+.online-board-link {
+    display: inline-block;
+    background-color: #ffd700; /* Gold */
+    color: #004a99; /* Deep blue */
+    padding: 10px 20px;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-top: 10px;
+}
+
+.online-board-link:hover {
+    background-color: #003366; /* Darker blue */
+    color: #fff;
+}
+
+.card-footer {
+    /* background-color: #f9f9f9;  */
+    padding: 20px 25px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap; /* Allow columns to wrap on smaller screens */
+    gap: 0px;
+}
+
+.info-column {
+    flex: 1; /* Each column takes equal space */
+    min-width: 200px; /* Minimum width before wrapping */
+}
+
+.info-column h3 {
+    font-size: 1.2em;
+    color: #004a99;
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+.info-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-column ul li {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.info-column ul li strong {
+    color: #004a99;
+}
+
+.airport-links {
+    display: flex;
+    gap: 15px; /* Отступ между ссылками */
+    margin-top: 10px;
+}
+
+.online-board-link {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.online-board-link:hover {
+    background-color: #0056b3;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .airport-detail {
+    width: 90vw;
+    height: 85vh;
+    padding: 1rem;
+  }
+
+  .airport-detail-content {
+    grid-template-columns: 1fr;
+  }
+
+  .airport-detail-image {
+    width: 100%;          /* На мобильных - полная ширина */
+    height: auto;
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+}

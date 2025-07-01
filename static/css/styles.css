@@ -1,0 +1,110 @@
+@import "airport.css";
+@import "airport_detail.css";
+@import "airports_nearest.css";
+
+/* Фиксированная навигационная панель */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030; /* Убедитесь, что панель поверх других элементов */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+body {
+    background-image: url('../img/back.webp');
+    background-size: cover;       /* Растянуть на весь экран */
+    background-position: center;  /* Центрировать изображение */
+    background-repeat: no-repeat; /* Не повторять */
+    background-attachment: fixed; /* Фиксированный фон */
+    margin: 0;
+    height: 100vh;
+    padding-top: 70px; /* Высота навигационной панели + небольшой отступ */
+}
+.navbar-brand {
+    font-weight: bold;
+}
+.auth-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #14a932;
+    border-radius: 8px;
+}
+.modal {
+    background-color: rgba(0,0,0,0.5);
+}
+.city-badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin-left: 10px;
+}
+.user-info {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background-color 0.2s;
+}
+.user-info:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.user-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+}
+.user-modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Адаптивная пагинация в навбаре */
+.pagination-container {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 0.25rem;
+}
+
+.page-link {
+    background: transparent !important;
+    border: none !important;
+    color: white !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+}
+
+.page-item.active .page-link {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Адаптация под мобильные устройства */
+@media (max-width: 768px) {
+    .body {
+        padding-top: 60px;
+    }
+    .pagination-container {
+        display: none; /* Скрываем на маленьких экранах */
+    }
+
+    .user-info span {
+        display: none; /* Скрываем текст приветствия */
+    }
+}
