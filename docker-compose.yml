@@ -23,7 +23,7 @@ services:
   app:
     build:
       dockerfile: ./Dockerfile
-    command: ["docker/app.sh"]
+    command: ["/app/docker/app.sh"]
     expose:
       - 8000
     ports:
