@@ -35,6 +35,7 @@ async def get_airports_all(
     """
     Возвращает список с данными аэропортов
     """
+    logger.info("Start load info about airports")
     all_airports = await db_cache.lrange("airports", 0, -1)
     if not all_airports:
         airports_db: list[Any] = await get_all_airport(session)
@@ -69,6 +70,7 @@ async def get_airport_by_id(
     """
     Возвращает данные аэропорта по ID
     """
+    logger.info("Start load info about airport with id %s", str(id))
     airport_json: str = await db_cache.get(str(id))
     if airport_json is None:
         try:
@@ -107,6 +109,7 @@ async def get_distance(
     """
     Возвращает расстояние от города до аэропорта
     """
+    logger.info("Start of distance calculation")
     geo_city: Union[Geometry, ST_Point] = ST_Point(longitude_city, latitude_city, srid=4326)
     geo_airport: Union[Geometry, ST_Point] = ST_Point(longitude_airport, latitude_airport, srid=4326)
 
@@ -161,7 +164,10 @@ async def get_city_name(
     """
     Возвращает наименование населенного пункта по заданным координатам
     """
+    logger.info("Start geolocation latitude: %s longitude: %s" % (latitude, longitude))
     city_info = await get_location_info(latitude, longitude)
+
+    logger.info("Geolocation search result %s", city_info["city"])
 
     if city_info:
         return {"city": city_info["city"]}
