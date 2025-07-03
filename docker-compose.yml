@@ -17,13 +17,14 @@ services:
     command: --port 6379
     expose:
       - 6379
+    restart: always
     networks:
       - net
 
   app:
     build:
       dockerfile: ./Dockerfile
-    command: ["/app/docker/app.sh"]
+    command: [ "/app/docker/app.sh" ]
     expose:
       - 8000
     ports:
@@ -53,23 +54,9 @@ services:
     networks:
       - net
 
-  pgadmin:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4:7
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    networks:
-      - net
 
 volumes:
   postgres_volume:
-  pgadmin-data:
   data:
 
 networks:
