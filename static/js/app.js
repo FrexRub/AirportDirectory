@@ -127,12 +127,14 @@ createApp({
 
         // Получение геолокации пользователя
         const getUserLocation = () => {
-            console.log("Start getUserLocation", latitude.value, longitude.value)
+            
             if (!navigator.geolocation) {
                 geoError.value = "Геолокация не поддерживается";
+                console.log("Геолокация не поддерживается")
                 return;
             }
-            
+
+            console.log("Start getUserLocation")
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     latitude.value = position.coords.latitude;
@@ -158,6 +160,7 @@ createApp({
                     timeout: 5000
                 }
             );
+            console.log("Curent userLocation", latitude.value, longitude.value)
         };
 
 
