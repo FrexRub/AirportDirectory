@@ -148,7 +148,7 @@ createApp({
                 },
                 (err) => {
                     // При отсутствии данных передаем гео данные Москвы (установлены по умолчанию)
-                    console.log("Error geolocat", latitude.value, longitude.value);
+                    console.log("Error geolocat: ", err.code);
                     sendGeoData(
                         latitude.value,
                         longitude.value
