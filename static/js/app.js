@@ -157,7 +157,8 @@ createApp({
                 },
                 { 
                     enableHighAccuracy: true,
-                    timeout: 5000
+                    timeout: 10000,
+                    maximumAge: 0  // Не использовать кешированные данные
                 }
             );
             console.log("Curent userLocation", latitude.value, longitude.value)
