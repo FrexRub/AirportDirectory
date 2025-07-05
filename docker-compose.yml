@@ -27,6 +27,8 @@ services:
     command: [ "/app/docker/app.sh" ]
     expose:
       - 8000
+    ports:
+      - 8000:8000
     restart: always
     env_file:
       - .env
