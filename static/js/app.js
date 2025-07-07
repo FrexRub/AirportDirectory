@@ -2,7 +2,7 @@ const { createApp, ref, onMounted, computed } = Vue;
 
 createApp({
     setup() {
-        const baseURL = 'http://localhost:8000';
+        const baseURL = 'http://77.233.222.107:8000';
         // Состояние UI
         const showAuthModal = ref(false);
         const showDetailsModal = ref(false);
