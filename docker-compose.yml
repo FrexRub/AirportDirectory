@@ -50,7 +50,7 @@ services:
     volumes:
       - ./var/log/nginx:/var/log/nginx
       - ./static:/usr/share/nginx/html/static
-      - ./nginx/ssl:/etc/letsencrypt  # Сертификаты Certbot
+      - ./nginx/ssl/live/airportcards.ru:/etc/nginx/ssl  # Монтируем сертификаты напрямую
       - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
     ports:
       - 80:80
@@ -64,7 +64,7 @@ services:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - ./nginx/ssl:/etc/letsencrypt
+      - ./nginx/ssl:/etc/letsencrypt  # Сохраняем сертификаты в ./nginx/ssl
       - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
     command: certonly --webroot --agree-tos --email frex@mail.ru --webroot-path /usr/share/nginx/html -d airportcards.ru -d www.airportcards.ru
     depends_on:
