@@ -42,13 +42,17 @@ services:
       - net
 
   nginx:
-    container_name: airport-nginx
     build: ./nginx
+    container_name: web_nginx
+    hostname: web_nginx
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
     volumes:
       - ./var/log/nginx:/var/log/nginx
       - ./static:/usr/share/nginx/html/static
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/well-known/:/usr/share/nginx/html
     ports:
       - 80:80
       - 443:443
