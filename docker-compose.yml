@@ -48,34 +48,33 @@ services:
     environment:
       TZ: "Europe/Moscow"
     volumes:
-      - log_nginx:/var/log/nginx
+      - ./var/log/nginx:/var/log/nginx
       - ./static:/usr/share/nginx/html/static
       - ./nginx/ssl:/etc/letsencrypt  # Сертификаты Certbot
       - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
     ports:
       - 80:80
-#      - 443:443
+      - 443:443
     depends_on:
       - app
     networks:
       - net
 
-#  certbot:
-#    image: certbot/certbot
-#    container_name: certbot
-#    volumes:
-#      - ./nginx/ssl:/etc/letsencrypt
-#      - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
-#    command: certonly --webroot --agree-tos --email frex@mail.ru --webroot-path /usr/share/nginx/html -d airportcards.ru -d www.airportcards.ru
-#    depends_on:
-#      - nginx
-#    networks:
-#      - net
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
+    command: certonly --webroot --agree-tos --email frex@mail.ru --webroot-path /usr/share/nginx/html -d airportcards.ru -d www.airportcards.ru
+    depends_on:
+      - nginx
+    networks:
+      - net
 
 volumes:
   postgres_volume:
   data:
-  log_nginx:
 
 networks:
   net:
