@@ -2,7 +2,6 @@ const { createApp, ref, onMounted, computed } = Vue;
 
 createApp({
     setup() {
-        const baseURL = 'http://77.233.222.107:8000';
         // Состояние UI
         const showAuthModal = ref(false);
         const showDetailsModal = ref(false);
@@ -49,7 +48,7 @@ createApp({
                     token
                 });
                 
-                const response = await fetch(`${baseURL}/api/users/me`, {
+                const response = await fetch(`/api/users/me`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     }
@@ -103,7 +102,7 @@ createApp({
                     longitude: longitude
                 });
 
-                const response = await fetch(`${baseURL}/api/geo-local?${params.toString()}`, {
+                const response = await fetch(`/api/geo-local?${params.toString()}`, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json'
@@ -171,7 +170,7 @@ createApp({
                 error.value = null;
                 
                 // Используем стандартный fetch вместо axios
-                const response = await fetch(`${baseURL}/api/airports?page=${page}&size=6`);
+                const response = await fetch(`/api/airports?page=${page}&size=6`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -219,7 +218,7 @@ createApp({
                 id: airport.id,
             });
 
-            const response_by_id = await fetch(`${baseURL}/api/airport?${params_by_id.toString()}`, {
+            const response_by_id = await fetch(`/api/airport?${params_by_id.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -242,7 +241,7 @@ createApp({
                 longitude_airport: airport_by_id.longitude,
             });
 
-            const response = await fetch(`${baseURL}/api/distance?${params.toString()}`, {
+            const response = await fetch(`/api/distance?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -270,7 +269,7 @@ createApp({
                 limit: 3,
             });
 
-            const response_nearest = await fetch(`${baseURL}/api/nearest?${params_airport.toString()}`, {
+            const response_nearest = await fetch(`/api/nearest?${params_airport.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -296,7 +295,7 @@ createApp({
                 }
         
                 // Отправка запроса к FastAPI бэкенду
-                const response = await fetch(`${baseURL}/api/users/login`, {
+                const response = await fetch(`/api/users/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -368,7 +367,7 @@ createApp({
 
             try {
                 // Отправка запроса к FastAPI бэкенду
-                const response = await fetch(`${baseURL}/api/users/register`, {
+                const response = await fetch(`/api/users/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -437,7 +436,7 @@ createApp({
             localStorage.removeItem('authToken');
             // Cookies.remove('access_token');
 
-            const response = await fetch(`${baseURL}/api/users/logout`);
+            const response = await fetch(`/api/users/logout`);
                 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -457,7 +456,7 @@ createApp({
                 limit: 3,
             });
 
-            const response_nearest_city = await fetch(`${baseURL}/api/nearest?${params_city.toString()}`, {
+            const response_nearest_city = await fetch(`/api/nearest?${params_city.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
