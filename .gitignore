@@ -162,3 +162,5 @@ cython_debug/
 /.idea/
 /.idea/misc.xml
 /serts
+/data/air_bd.xlsx
+*.xlsx
