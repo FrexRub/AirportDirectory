@@ -49,7 +49,7 @@ async def data_from_files_to_db() -> None:
     logger.info("Start add data to db")
     folder_path: Path = Path(BASE_DIR / "data")
 
-    df = pd.read_excel(folder_path / FILE_NAME)
+    df = pd.read_excel(folder_path / FILE_NAME, engine="openpyxl", keep_default_na=False)
     df = df.dropna(how="any")
 
     all_data: list[dict[str, any]] = df.to_dict("records")  # Данные в виде списка словарей
