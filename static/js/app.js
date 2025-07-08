@@ -2,6 +2,8 @@ const { createApp, ref, onMounted, computed } = Vue;
 
 createApp({
     setup() {
+        const baseURL = '';
+        // const baseURL = 'http://localhost:8000';
         // Состояние UI
         const showAuthModal = ref(false);
         const showDetailsModal = ref(false);
@@ -21,11 +23,13 @@ createApp({
         const latitude = ref(55.7522);
         const longitude = ref(37.6156);
         const distance = ref(null);
-        const airports = ref({ items: [], total: 0, page: 1, size: 10 });
+        const airports = ref({ items: [], total: 0, page: 1, size: 12 });
         const currentPage = ref(1);
         const totalPages = ref(1);
         const loading = ref(false);
         const error = ref(null);
+        const localTime = ref('');
+        let timeInterval = null;
                          
         // Данные пользователя
         const isUser = ref(null);
@@ -48,7 +52,7 @@ createApp({
                     token
                 });
                 
-                const response = await fetch(`/api/users/me`, {
+                const response = await fetch(`${baseURL}/api/users/me`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     }
@@ -102,7 +106,7 @@ createApp({
                     longitude: longitude
                 });
 
-                const response = await fetch(`/api/geo-local?${params.toString()}`, {
+                const response = await fetch(`${baseURL}/api/geo-local?${params.toString()}`, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json'
@@ -126,14 +130,12 @@ createApp({
 
         // Получение геолокации пользователя
         const getUserLocation = () => {
-            
+            console.log("Start getUserLocation", latitude.value, longitude.value)
             if (!navigator.geolocation) {
                 geoError.value = "Геолокация не поддерживается";
-                console.log("Геолокация не поддерживается")
                 return;
             }
-
-            console.log("Start getUserLocation")
+            
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     latitude.value = position.coords.latitude;
@@ -147,7 +149,7 @@ createApp({
                 },
                 (err) => {
                     // При отсутствии данных передаем гео данные Москвы (установлены по умолчанию)
-                    console.log("Error geolocat: ", err.code);
+                    console.log("Error geolocat", latitude.value, longitude.value);
                     sendGeoData(
                         latitude.value,
                         longitude.value
@@ -156,11 +158,9 @@ createApp({
                 },
                 { 
                     enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0  // Не использовать кешированные данные
+                    timeout: 5000
                 }
             );
-            console.log("Curent userLocation", latitude.value, longitude.value)
         };
 
 
@@ -170,7 +170,7 @@ createApp({
                 error.value = null;
                 
                 // Используем стандартный fetch вместо axios
-                const response = await fetch(`/api/airports?page=${page}&size=6`);
+                const response = await fetch(`${baseURL}/api/airports?page=${page}&size=12`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -218,7 +218,7 @@ createApp({
                 id: airport.id,
             });
 
-            const response_by_id = await fetch(`/api/airport?${params_by_id.toString()}`, {
+            const response_by_id = await fetch(`${baseURL}/api/airport?${params_by_id.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -241,7 +241,7 @@ createApp({
                 longitude_airport: airport_by_id.longitude,
             });
 
-            const response = await fetch(`/api/distance?${params.toString()}`, {
+            const response = await fetch(`${baseURL}/api/distance?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -269,7 +269,7 @@ createApp({
                 limit: 3,
             });
 
-            const response_nearest = await fetch(`/api/nearest?${params_airport.toString()}`, {
+            const response_nearest = await fetch(`${baseURL}/api/nearest?${params_airport.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -295,7 +295,7 @@ createApp({
                 }
         
                 // Отправка запроса к FastAPI бэкенду
-                const response = await fetch(`/api/users/login`, {
+                const response = await fetch(`${baseURL}/api/users/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -367,7 +367,7 @@ createApp({
 
             try {
                 // Отправка запроса к FastAPI бэкенду
-                const response = await fetch(`/api/users/register`, {
+                const response = await fetch(`${baseURL}/api/users/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -436,7 +436,7 @@ createApp({
             localStorage.removeItem('authToken');
             // Cookies.remove('access_token');
 
-            const response = await fetch(`/api/users/logout`);
+            const response = await fetch(`${baseURL}/api/users/logout`);
                 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -456,7 +456,7 @@ createApp({
                 limit: 3,
             });
 
-            const response_nearest_city = await fetch(`/api/nearest?${params_city.toString()}`, {
+            const response_nearest_city = await fetch(`${baseURL}/api/nearest?${params_city.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -481,6 +481,22 @@ createApp({
             }
         }
 
+        // Функция для форматирования местного времени
+        const formatLocalTime = (timeZone) => {
+            try {
+                const options = {
+                    timeZone: timeZone,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                };
+                return new Date().toLocaleTimeString('ru-RU', options);
+            } catch (e) {
+                console.error('Ошибка формата времени:', e);
+                return 'недоступно';
+            }
+        };
+
         // Отслеживаем изменение города
         // watch(userCity, (newCity) => {
         //     if (newCity) {
@@ -490,6 +506,11 @@ createApp({
 
         // Загружаем данные сразу при запуске
         onMounted(() => {
+            setInterval(() => {
+                if (selectedAirport.value?.time_zone) {
+                    localTime.value = formatLocalTime(selectedAirport.value.time_zone);
+                }
+            }, 1000);
             getUserLocation();
             fetchAirports(1);
         });  
@@ -517,6 +538,8 @@ createApp({
             distance,
             currentPage,
             totalPages,
+            localTime,
+            formatLocalTime,
             prevPage,
             nextPage,
             openUserModal,

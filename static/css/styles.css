@@ -103,7 +103,7 @@ body {
     .pagination-container {
         display: none; /* Скрываем на маленьких экранах */
     }
-
+    
     .user-info span {
         display: none; /* Скрываем текст приветствия */
     }
