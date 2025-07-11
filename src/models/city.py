@@ -1,4 +1,4 @@
-from sqlalchemy import Float, String, Index
+from sqlalchemy import Float, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from src.models.base import Base
