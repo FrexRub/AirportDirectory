@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from pathlib import Path
+from typing import Any, Hashable
 
 import pandas as pd
 from geoalchemy2.functions import ST_Point
@@ -19,7 +20,7 @@ DIR_NAME = BASE_DIR / "data"
 FILE_NAME = "air_bd.xlsx"
 
 
-async def data_to_model(i_data: dict[str, str | float]) -> Airport:
+async def data_to_model(i_data: dict[Hashable, str | float]) -> Airport:
     airport: Airport = Airport(
         name=i_data["name"],
         full_name=i_data["full_name"],
@@ -52,13 +53,13 @@ async def data_from_files_to_db() -> None:
     df = pd.read_excel(folder_path / FILE_NAME, engine="openpyxl", keep_default_na=False)
     df = df.dropna(how="any")
 
-    all_data: list[dict[str, any]] = df.to_dict("records")  # Данные в виде списка словарей
+    all_data: list[dict[Hashable, Any]] = df.to_dict("records")  # Данные в виде списка словарей
 
     async with async_session_maker() as session:
         for i_data in all_data:
             stmt = select(exists().where(Airport.name == i_data["name"]))
             res: Result = await session.execute(stmt)
-            exist: bool = res.scalar()
+            exist: bool = bool(res.scalar())
 
             if not exist:
                 airport: Airport = await data_to_model(i_data)
@@ -81,7 +82,7 @@ async def data_from_files_to_test_db(session: AsyncSession) -> None:
 
     first_eight_records = df.head(8)
 
-    all_data: list[dict[str, any]] = first_eight_records.to_dict("records")
+    all_data: list[dict[Hashable, Any]] = first_eight_records.to_dict("records")
 
     for i_data in all_data:
         airport: Airport = await data_to_model(i_data)

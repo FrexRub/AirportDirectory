@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Union
+from typing import Any, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
@@ -165,9 +165,12 @@ async def get_city_name(
     Возвращает наименование населенного пункта по заданным координатам
     """
     logger.info("Start geolocation latitude: %s longitude: %s" % (latitude, longitude))
-    city_info = await get_location_info(latitude, longitude)
+    city_info: Optional[dict[str, str]] = await get_location_info(latitude, longitude)
 
-    logger.info("Geolocation search result %s", city_info["city"])
+    if city_info is not None:
+        logger.info("Geolocation search result %s", city_info["city"])
+    else:
+        logger.warning("No geolocation data found")
 
     if city_info:
         return {"city": city_info["city"]}

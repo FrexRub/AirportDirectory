@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from pathlib import Path
+from typing import Any, Hashable
 
 import pandas as pd
 from sqlalchemy import exists, select
@@ -17,7 +18,7 @@ DIR_NAME = BASE_DIR / "data"
 FILE_NAME = "city.xlsx"
 
 
-async def data_to_model(i_data: dict[str, str | float]) -> City:
+async def data_to_model(i_data: dict[Hashable, str | float]) -> City:
     city: City = City(
         region=i_data["region"],
         city=i_data["city"],
@@ -37,13 +38,13 @@ async def city_from_files_to_db() -> None:
     df = pd.read_excel(folder_path / FILE_NAME, engine="openpyxl", keep_default_na=False)
     df = df.dropna(how="any")
 
-    all_data: list[dict[str, any]] = df.to_dict("records")  # Данные в виде списка словарей
+    all_data: list[dict[Hashable, Any]] = df.to_dict("records")  # Данные в виде списка словарей
 
     async with async_session_maker() as session:
         for i_data in all_data:
             stmt = select(exists().where(City.city == i_data["city"]))
             res: Result = await session.execute(stmt)
-            exist: bool = res.scalar()
+            exist: bool = bool(res.scalar())
 
             if not exist:
                 city: City = await data_to_model(i_data)
