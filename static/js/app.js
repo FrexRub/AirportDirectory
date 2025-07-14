@@ -2,7 +2,8 @@ const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
 createApp({
     setup() {
-        const baseURL = 'http://localhost:8000';
+//        const baseURL = 'http://localhost:8000';
+        const baseURL = '';
         // Состояние UI
         const showAuthModal = ref(false);
         const showDetailsModal = ref(false);
@@ -49,7 +50,7 @@ createApp({
         //     'Воронеж',
         //     'Волгоград'
         // ]);
-                                       
+
         // Данные пользователя
         const isUser = ref(null);
         const authData = ref({
@@ -65,7 +66,7 @@ createApp({
         // Фильтрация городов по поисковому запросу
         const filteredCities = computed(() => {
             if (!citySearch.value) return cities.value;
-            return cities.value.filter(city => 
+            return cities.value.filter(city =>
                 city.toLowerCase().includes(citySearch.value.toLowerCase())
             );
         });
@@ -78,15 +79,15 @@ createApp({
                 document.querySelector('#citySelectModal input').focus();
             });
         };
-        
+
         // Выбор города
         const selectCity = async (city) => {
             try {
                 userCity.value = city;
                 // Сохраняем в localStorage
                 localStorage.setItem('selectedCity', city);
-                
-                // получение данных о городе 
+
+                // получение данных о городе
                 const params_by_id = new URLSearchParams({
                     title: city,
                 });
@@ -97,11 +98,11 @@ createApp({
                         'Accept': 'application/json'
                     }
                 });
-                                
+
                 if (!response.ok) {
                     throw new Error(`Ошибка: ${response.status}`);
                 }
-                
+
                 const city_info = await response.json();
 
                 console.log("Данные о городе:", city_info);
@@ -120,7 +121,7 @@ createApp({
                 console.error("Произошла ошибка при выборе города:", error);
             }
         };
-        
+
         // Выбор первого города в списке
         const selectFirstCity = () => {
             if (filteredCities.value.length > 0) {
@@ -138,7 +139,7 @@ createApp({
                 console.log("Данные jwt token for user:", {
                     token
                 });
-                
+
                 const response = await fetch(`${baseURL}/api/users/me`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -148,10 +149,10 @@ createApp({
                 // Обработка HTTP ошибок
                 if (!response.ok) {
                     const errorData = await response.json();
-                    
+
                     if (response.status === 422) {
                         // Ошибка валидации данных
-                        throw new Error('Некорректные данные: ' + 
+                        throw new Error('Некорректные данные: ' +
                             (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
                     } else if (response.status === 401) {
                         throw new Error('Необходимо заново авторизоваться');
@@ -165,7 +166,7 @@ createApp({
                 console.log("Данные полученные с сервера:", {
                     userData
                 });
-                
+
             } catch (err) {
                 error.value = 'Ошибка загрузки данных. ' + err.message;
                 console.error('Ошибка:', err);
@@ -199,14 +200,14 @@ createApp({
                         'Accept': 'application/json'
                     }
                 });
-                               
+
                 if (!response.ok) {
                     throw new Error(`Ошибка: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
                 userCity.value = data.city || 'Неизвестный город';
-                
+
             } catch (err) {
                 geoError.value = err.message;
                 console.error('Ошибка геолокации:', err);
@@ -222,7 +223,7 @@ createApp({
                 geoError.value = "Геолокация не поддерживается";
                 return;
             }
-            
+
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     latitude.value = position.coords.latitude;
@@ -243,7 +244,7 @@ createApp({
                     );
                     getNearestAirports();
                 },
-                { 
+                {
                     enableHighAccuracy: true,
                     timeout: 5000
                 }
@@ -255,14 +256,14 @@ createApp({
             try {
                 loading.value = true;
                 error.value = null;
-                
+
                 // Используем стандартный fetch вместо axios
                 const response = await fetch(`${baseURL}/api/airports?page=${page}&size=12`);
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
                 airports.value = data.items;
                 currentPage.value = data.page;
@@ -270,7 +271,7 @@ createApp({
 
                 console.log("Данные полученные с сервера:", { data });
                 console.log('Current:', currentPage.value, 'Total:', totalPages.value, 'Items:', data.items.length)
-                
+
             } catch (err) {
                 error.value = 'Ошибка загрузки данных. ' + err.message;
                 console.error('Ошибка:', err);
@@ -300,7 +301,7 @@ createApp({
 
 
         const showAirportDetails = async (airport) => {
-            // получение данных об аэропрте 
+            // получение данных об аэропрте
             const params_by_id = new URLSearchParams({
                 id: airport.id,
             });
@@ -311,16 +312,16 @@ createApp({
                     'Accept': 'application/json'
                 }
             });
-                            
+
             if (!response_by_id.ok) {
                 throw new Error(`Ошибка: ${response_by_id.status}`);
             }
-            
+
             const airport_by_id = await response_by_id.json();
 
             console.log("Данные об аэропрте:", airport_by_id);
 
-            // Вычисляем расстояние от города(гео-точки пользователя) до выбранного аэропорта 
+            // Вычисляем расстояние от города(гео-точки пользователя) до выбранного аэропорта
             const params = new URLSearchParams({
                 latitude_city: latitude.value,
                 longitude_city: longitude.value,
@@ -334,11 +335,11 @@ createApp({
                     'Accept': 'application/json'
                 }
             });
-                            
+
             if (!response.ok) {
                 throw new Error(`Ошибка: ${response.status}`);
             }
-            
+
             const data = await response.json();
 
             // Сохраняем данные о расстоянии
@@ -362,7 +363,7 @@ createApp({
                     'Accept': 'application/json'
                 }
             });
-                            
+
             if (!response_nearest.ok) {
                 throw new Error(`Ошибка: ${response_nearest.status}`);
             }
@@ -380,7 +381,7 @@ createApp({
                 if (!authData.value.email || !authData.value.password) {
                     throw new Error('Email и пароль обязательны для заполнения');
                 }
-        
+
                 // Отправка запроса к FastAPI бэкенду
                 const response = await fetch(`${baseURL}/api/users/login`, {
                     method: 'POST',
@@ -393,24 +394,24 @@ createApp({
                         password: authData.value.password
                     })
                 });
-        
+
                 // Обработка HTTP ошибок
                 if (!response.ok) {
                     const errorData = await response.json();
-                    
+
                     if (response.status === 422) {
                         // Ошибка валидации данных
-                        throw new Error('Некорректные данные: ' + 
+                        throw new Error('Некорректные данные: ' +
                             (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
                     } else if (response.status === 401) {
-                        throw new Error('Неверные учетные данные: ' + 
+                        throw new Error('Неверные учетные данные: ' +
                             (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
                        // throw new Error('Неверные учетные данные');
                     } else {
                         throw new Error(errorData.detail || 'Ошибка сервера');
                     }
                 }
-        
+
                 // Успешный ответ
                 const { access_token, token_type, user } = await response.json();
 
@@ -421,8 +422,8 @@ createApp({
                     email: authData.value.email,
                     token: access_token
                 };
-                
-        
+
+
                 // Сохранение токена в localStorage
                 localStorage.setItem('authToken', access_token);
                 localStorage.setItem('Id', user.id);
@@ -432,13 +433,13 @@ createApp({
                 //     sameSite: 'strict'
                 // });
 
-                
+
                 // Закрытие модального окна и сброс формы
                 showAuthModal.value = false;
                 authData.value = { name: '', email: '', password: '' };
 
                 console.log('Успешная авторизация:', isUser.value.name);
-        
+
             } catch (error) {
                 console.error('Login error:', error);
                 alert(error.message || 'Произошла ошибка при входе');
@@ -461,7 +462,7 @@ createApp({
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: authData.value.name,  
+                    username: authData.value.name,
                     email: authData.value.email,
                     password: authData.value.password
                 })
@@ -470,13 +471,13 @@ createApp({
             // Обработка HTTP ошибок
             if (!response.ok) {
                 const errorData = await response.json();
-                
+
                 if (response.status === 422) {
                     // Ошибка валидации данных
-                    throw new Error('Некорректные данные: ' + 
+                    throw new Error('Некорректные данные: ' +
                         (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
                 } else if (response.status === 401) {
-                    throw new Error('Неверные учетные данные: ' + 
+                    throw new Error('Неверные учетные данные: ' +
                         (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
                     // throw new Error('Неверные учетные данные');
                 } else {
@@ -494,16 +495,16 @@ createApp({
                 email: authData.value.email,
                 token: access_token
             };
-                
-    
+
+
             // Сохранение токена в localStorage
             localStorage.setItem('authToken', access_token);
             localStorage.setItem('Id', user.id);
-            
+
             // Закрытие модального окна и сброс формы
             showAuthModal.value = false;
             authData.value = { name: '', email: '', password: '', confirmPassword: '' };
-    
+
             console.log('Успешная регистрация:', isUser.value);
             showAuthModal.value = false;
 
@@ -524,7 +525,7 @@ createApp({
             // Cookies.remove('access_token');
 
             const response = await fetch(`${baseURL}/api/users/logout`);
-                
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -549,7 +550,7 @@ createApp({
                     'Accept': 'application/json'
                 }
             });
-                            
+
             if (!response_nearest_city.ok) {
                 throw new Error(`Ошибка: ${response_nearest_city.status}`);
             }
@@ -600,7 +601,7 @@ createApp({
             }, 1000);
             getUserLocation();
             fetchAirports(1);
-        });  
+        });
 
         return {
             showAuthModal,
