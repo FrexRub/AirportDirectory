@@ -19,6 +19,7 @@ from src.core.jwt_utils import create_hash_password
 from src.main import app
 from src.models.base import Base
 from src.models.user import User
+from src.utils.add_city_to_db import city_from_files_to_test_db
 from src.utils.add_data_to_db import data_from_files_to_test_db
 
 SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://test:test@localhost:5432/testdb"
@@ -151,4 +152,10 @@ async def test_user(db_session: AsyncSession) -> User:
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
 async def test_db(db_session: AsyncSession):
     await data_from_files_to_test_db(db_session)
+    return db_session
+
+
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
+async def test_db_city(db_session: AsyncSession):
+    await city_from_files_to_test_db(db_session)
     return db_session

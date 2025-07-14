@@ -1,0 +1,104 @@
+.modal-header {
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+/* Увеличиваем ширину модального окна */
+.modal-dialog {
+    max-width: 90%; /* или конкретное значение, например 1200px */
+    width: auto;
+}
+
+/* Увеличиваем максимальную высоту и добавляем прокрутку */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.city-link {
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.city-link:hover {
+    opacity: 0.8;
+}
+.city-badge {
+    background-color: rgba(13, 110, 253, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 5px;
+    font-size: 0.9em;
+    border: 1px solid rgba(13, 110, 253, 0.3);
+}
+.list-group-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Стили для колонок */
+.cities-columns {
+    column-count: 5;
+    column-gap: 15px;
+    width: 100%;
+    display: block;
+    column-fill: balance; /* Равномерное распределение по колонкам */
+}
+
+.city-item {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 8px;
+    page-break-inside: avoid;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.85rem;
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    transition: all 0.25s ease;
+    box-sizing: border-box; /* Учитываем padding в ширине */
+    overflow: hidden; /* Скрываем выходящий за границы текст */
+    text-overflow: ellipsis; /* Многоточие для длинного текста */
+    white-space: nowrap; /* Запрещаем перенос строк */
+    position: relative;
+}
+
+.city-item:hover {
+    background-color: #e9f5ff;
+    color: #0066cc;
+}
+
+.city-name {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+.city-item:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 10;
+    margin-bottom: 5px;
+}
+
+/* Адаптивные колонки */
+@media (max-width: 1200px) { .cities-columns { column-count: 4; } }
+@media (max-width: 992px) { .cities-columns { column-count: 3; } }
+@media (max-width: 768px) { .cities-columns { column-count: 2; } }
+@media (max-width: 576px) { .cities-columns { column-count: 1; } }

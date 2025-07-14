@@ -1,9 +1,8 @@
-const { createApp, ref, onMounted, computed } = Vue;
+const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
 createApp({
     setup() {
-        const baseURL = '';
-        // const baseURL = 'http://localhost:8000';
+        const baseURL = 'http://localhost:8000';
         // Состояние UI
         const showAuthModal = ref(false);
         const showDetailsModal = ref(false);
@@ -29,8 +28,28 @@ createApp({
         const loading = ref(false);
         const error = ref(null);
         const localTime = ref('');
-        let timeInterval = null;
-                         
+        const citySearch = ref('');
+        const cities = ref(window.externalCities || []);
+
+        // Список популярных городов
+        // const cities = ref([
+        //     'Москва',
+        //     'Санкт-Петербург',
+        //     'Новосибирск',
+        //     'Екатеринбург',
+        //     'Казань',
+        //     'Нижний Новгород',
+        //     'Челябинск',
+        //     'Самара',
+        //     'Омск',
+        //     'Ростов-на-Дону',
+        //     'Уфа',
+        //     'Красноярск',
+        //     'Пермь',
+        //     'Воронеж',
+        //     'Волгоград'
+        // ]);
+                                       
         // Данные пользователя
         const isUser = ref(null);
         const authData = ref({
@@ -42,6 +61,74 @@ createApp({
 
 
         // Методы
+
+        // Фильтрация городов по поисковому запросу
+        const filteredCities = computed(() => {
+            if (!citySearch.value) return cities.value;
+            return cities.value.filter(city => 
+                city.toLowerCase().includes(citySearch.value.toLowerCase())
+            );
+        });
+
+        // Открытие модального окна
+        const openCityModal = () => {
+            const modal = new bootstrap.Modal(document.getElementById('citySelectModal'));
+            modal.show();
+            nextTick(() => {
+                document.querySelector('#citySelectModal input').focus();
+            });
+        };
+        
+        // Выбор города
+        const selectCity = async (city) => {
+            try {
+                userCity.value = city;
+                // Сохраняем в localStorage
+                localStorage.setItem('selectedCity', city);
+                
+                // получение данных о городе 
+                const params_by_id = new URLSearchParams({
+                    title: city,
+                });
+
+                const response = await fetch(`${baseURL}/api/city?${params_by_id.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                                
+                if (!response.ok) {
+                    throw new Error(`Ошибка: ${response.status}`);
+                }
+                
+                const city_info = await response.json();
+
+                console.log("Данные о городе:", city_info);
+
+                latitude.value = city_info.latitude;
+                longitude.value = city_info.longitude;
+                console.log("Новые координаты:", latitude.value, longitude.value);
+                getNearestAirports();
+
+                // Закрываем модальное окно
+                const modal = bootstrap.Modal.getInstance(document.getElementById('citySelectModal'));
+                modal.hide();
+                // Очищаем поиск
+                citySearch.value = '';
+            } catch (error) {
+                console.error("Произошла ошибка при выборе города:", error);
+            }
+        };
+        
+        // Выбор первого города в списке
+        const selectFirstCity = () => {
+            if (filteredCities.value.length > 0) {
+                selectCity(filteredCities.value[0]);
+            }
+        };
+
+
         const fetchUserData = async () => {
             try {
                 userLoading.value = true;
@@ -539,6 +626,11 @@ createApp({
             currentPage,
             totalPages,
             localTime,
+            citySearch,
+            filteredCities,
+            openCityModal,
+            selectCity,
+            selectFirstCity,
             formatLocalTime,
             prevPage,
             nextPage,
