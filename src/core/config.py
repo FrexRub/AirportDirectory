@@ -31,6 +31,11 @@ class SettingConn(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
 
+    SMTP_USER: str
+    SMTP_HOST: str
+    SMTP_PASSWORD: str
+    SMTP_PORT: int
+
     SECRET_KEY: str = "test"
     GOOGLE_CLIENT_ID: str = "test"
     GOOGLE_CLIENT_SECRET: str = "test"
