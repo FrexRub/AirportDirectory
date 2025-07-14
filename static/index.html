@@ -21,10 +21,10 @@
                 <div class="d-flex align-items-center mx-auto">
                     <!-- Геолокация -->
                     <div v-if="userCity || geoLoading" class="d-flex align-items-center me-3">
-                        <span v-if="userCity" class="text-white">
-                            <i class="bi bi-geo-alt"></i>
-                            <span class="city-badge">{{ userCity }}</span>
-                        </span>
+                        <i class="bi bi-geo-alt text-primary text-white"></i>
+                        <a href="#" class="city-link d-flex align-items-center text-white" @click.prevent="openCityModal">
+                            <span class="city-badge ms-2">{{ userCity }}</span>
+                        </a>
                         <span v-if="geoLoading" class="text-white">
                             <span class="spinner-border spinner-border-sm"></span>
                         </span>
@@ -207,7 +207,6 @@
                 <h2>{{ selectedAirport.full_name }}</h2>
                 <span class="iata-code">{{ selectedAirport.iata }}</span>
                 <button @click="showDetailsModal = false" class="btn-close">
-                <span aria-hidden="true">&times;</span>
                 </button>
 
             </div>
@@ -291,8 +290,46 @@
 
             </div>
         </div>
+        
+        <!-- Модальное окно выбора города -->
+        <div class="modal fade" id="citySelectModal" tabindex="-1" aria-labelledby="citySelectModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title" id="citySelectModalLabel">Выберите город</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Поисковое поле -->
+                        <div class="mb-3">
+                            <input type="text" class="form-control" placeholder="Начните вводить название города" 
+                                    v-model="citySearch" @keyup.enter="selectFirstCity">
+                        </div>
+                        
+                        <!-- Список городов -->
+                        <div class="list-group cities-columns">
+                            <a href="#" class="list-group-item list-group-item-action" 
+                                v-for="city in filteredCities" 
+                                :key="city" 
+                                @click.prevent="selectCity(city)">
+                                {{ city }}
+                            </a>
+                        </div>
+                        
+                        <!-- Сообщение, если города не найдены -->
+                        <div v-if="filteredCities.length === 0" class="text-muted mt-3">
+                            Город не найден. Попробуйте изменить запрос.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
+
+    
     <!-- Подключаем компоненты и скрипты -->
+    <script src="./js/cities-data.js"></script>
     <script src="./js/app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

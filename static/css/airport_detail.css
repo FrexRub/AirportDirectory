@@ -104,15 +104,6 @@
   border-radius: 4px;
 }
 
-/* Кнопка закрытия */
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #6c757d;
-}
-
 .online-board-link {
     display: inline-block;
     background-color: #ffd700; /* Gold */

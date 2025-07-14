@@ -1,0 +1,35 @@
+.city-link {
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.city-link:hover {
+    opacity: 0.8;
+}
+.city-badge {
+    background-color: rgba(13, 110, 253, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 5px;
+    font-size: 0.9em;
+    border: 1px solid rgba(13, 110, 253, 0.3);
+}
+.list-group-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+.cities-columns {
+    column-count: 3;
+    column-gap: 20px;
+    width: 100%;
+    display: block;
+}
+.cities-columns > a {
+    display: inline-block; /* или block */
+    width: 100%; /* Занимает всю ширину колонки */
+    break-inside: avoid;
+    margin-bottom: 10px;
+    page-break-inside: avoid; /* Для старых браузеров */
+}
