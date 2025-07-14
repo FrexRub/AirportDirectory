@@ -22,7 +22,7 @@ async def test_city_get_by_name(
     test_db_city: AsyncSession,
 ):
 
-    data = {"title": "Сочи"}
+    data = {"title": "Адлер"}
     response = await client.get("api/city", params=data)
     assert response.status_code == 200
-    assert response.json()["city"] == "Сочи"
+    assert response.json()["city"] == "Адлер"
