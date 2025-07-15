@@ -25,8 +25,8 @@ def generation_email_about_registration(email_user: str, name_user: str):
     return email
 
 
-@app.task
-def send_email_about_registration(topic: str, email_user: str, name_user: str):
+@app.task(name="send_email_about_registration", bind=True, max_retries=3, default_retry_delay=5)
+def send_email_about_registration(self, topic: str, email_user: str, name_user: str):
     logger.info(f"Start send email to {email_user}")
     if topic == "info":
         email = generation_email_about_registration(email_user, name_user)
@@ -38,5 +38,6 @@ def send_email_about_registration(topic: str, email_user: str, name_user: str):
             server.starttls()
             server.login(setting_conn.SMTP_USER, setting_conn.SMTP_PASSWORD)
             server.send_message(email)
-        except smtplib.SMTPException as exp:
-            logger.exception(f"Error send mail, {exp}")
+        except smtplib.SMTPException as exc:
+            logger.exception(f"Error send mail, {exc}")
+            self.retry(exc=exc)

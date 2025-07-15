@@ -4,8 +4,10 @@ from src.core.config import setting_conn
 
 app = Celery(
     "tasks",
-    broker=f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}/1",
-    backend=f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}/1",
+    broker="redis://localhost:6379/1",  # или ваш реальный хост Redis
+    backend="redis://localhost:6379/1",
+    # broker=f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}/1",
+    # backend=f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}/1",
 )
 
 app.conf.update(
@@ -15,4 +17,9 @@ app.conf.update(
     result_serializer="json",
     timezone="Europe/Moscow",
     enable_utc=True,
+    broker_connection_retry_on_startup=True,  # повторное подключение
+    task_acks_late=True,  # подтверждение задач по завершению
+    task_reject_on_worker_lost=True,
 )
+
+app.conf.task_default_queue = "sendemail"
