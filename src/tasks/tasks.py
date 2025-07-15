@@ -30,9 +30,11 @@ def send_email_about_registration(self, topic: str, email_user: str, name_user: 
     logger.info(f"Start send email to {email_user}")
     if topic == "info":
         email = generation_email_about_registration(email_user, name_user)
+        # print(email)
     else:
         logger.info("Не указана тема")
         return
+
     with smtplib.SMTP(setting_conn.SMTP_HOST, setting_conn.SMTP_PORT) as server:
         try:
             server.starttls()

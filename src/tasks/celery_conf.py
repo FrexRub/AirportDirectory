@@ -1,13 +1,9 @@
 from celery import Celery
 
-from src.core.config import setting_conn
-
 app = Celery(
     "tasks",
-    broker="redis://localhost:6379/1",  # или ваш реальный хост Redis
+    broker="redis://localhost:6379/1",
     backend="redis://localhost:6379/1",
-    # broker=f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}/1",
-    # backend=f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}/1",
 )
 
 app.conf.update(
@@ -23,3 +19,5 @@ app.conf.update(
 )
 
 app.conf.task_default_queue = "sendemail"
+
+app.autodiscover_tasks(["src.tasks"])  # автоматическая загрузка задач
