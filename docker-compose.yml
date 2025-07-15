@@ -60,6 +60,35 @@ services:
     networks:
       - net
 
+  celery:
+    build:
+      context: .
+    env_file:
+      - .env
+    container_name: celery_app
+    command: ["/app/docker/celery.sh", "celery"] # запуск скрипта для запуска celery
+    depends_on:
+      - redis
+    networks:
+      - net
+
+
+  flower:
+    build:
+      context: .
+    env_file:
+      - .env
+    container_name: flower_app
+    command: ["/app/docker/celery.sh", "flower"]  # запуск скрипта для запуска flower
+    depends_on:
+      - redis
+      - celery
+    ports:
+      - 5555:5555
+    networks:
+      - net
+
+
 #  certbot:
 #    image: certbot/certbot
 #    container_name: certbot
