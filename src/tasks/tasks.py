@@ -2,39 +2,37 @@ import logging
 import smtplib
 from email.message import EmailMessage
 
-from celery import Celery
-
 from src.core.config import configure_logging, setting_conn
-
-celery = Celery("tasks", broker=f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}")
+from src.tasks.celery_conf import app
 
 configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def get_email_for_send(info_about_like: dict[str, str]):
+def generation_email_about_registration(email_user: str, name_user: str):
     email = EmailMessage()
-    email["Subject"] = "Ваше сообщение было лайкнуто"
+    email["Subject"] = "Сообщение о регистрации"
     email["From"] = setting_conn.SMTP_USER
-    email["To"] = info_about_like["email"]
+    email["To"] = email_user
 
     email.set_content(
         "<div>"
-        f'<h1 style="color: red;">Здравствуйте, {info_about_like["name_user"]}, '
-        f"ваш пост c на тему {info_about_like['title_post']} был отмечен  {info_about_like['name_friend']}</h1>"
-        '<img src="https://static.vecteezy.com/system/resources/previews/008/295/031/original/custom-relationship'
-        "-management-dashboard-ui-design-template-suitable-designing-application-for-android-and-ios-clean-style-app"
-        '-mobile-free-vector.jpg" width="600">'
+        f'<h1 style="color: red;">Здравствуйте, {name_user}, '
+        f"вы успешно зарегистрировались на сайте airportcards.ru</h1>"
         "</div>",
         subtype="html",
     )
     return email
 
 
-@celery.task(serializer="json")
-def send_email(info_about_like: dict[str, str]):
-    logger.info(f"Start send email to {info_about_like['email']}")
-    email = get_email_for_send(info_about_like)
+@app.task
+def send_email_about_registration(topic: str, email_user: str, name_user: str):
+    logger.info(f"Start send email to {email_user}")
+    if topic == "info":
+        email = generation_email_about_registration(email_user, name_user)
+    else:
+        logger.info("Не указана тема")
+        return
     with smtplib.SMTP(setting_conn.SMTP_HOST, setting_conn.SMTP_PORT) as server:
         try:
             server.starttls()

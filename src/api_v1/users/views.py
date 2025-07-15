@@ -35,6 +35,7 @@ from src.core.exceptions import (
 )
 from src.core.jwt_utils import create_jwt, validate_password
 from src.models.user import User
+from src.tasks.tasks import send_email_about_registration
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -136,6 +137,7 @@ async def user_register(
     """
     Регистрация пользователе
     """
+    logger.info("Start of registration of a new user by name %s" % new_user.full_name)
     try:
         user: User = await create_user(session=session, user_data=new_user)
     except EmailInUse:
@@ -149,6 +151,7 @@ async def user_register(
             detail=f"{exp}",
         )
     else:
+        logger.info("Generate JWT for user by name %s" % new_user.full_name)
         access_token: str = await create_jwt(
             user=str(user.id),
             expire_minutes=setting.auth_jwt.access_token_expire_minutes,
@@ -169,6 +172,9 @@ async def user_register(
 
         request.session["user"] = {"family_name": user.full_name, "id": str(user.id)}
         await redis.set(str(user.id), refresh_token)
+
+        logger.info("Sending a user registration email")
+        send_email_about_registration.delay(topic="info", email_user=new_user.email, name_user=new_user.full_name)
 
         return OutUserSchemas(
             access_token=access_token,
