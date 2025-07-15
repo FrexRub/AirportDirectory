@@ -1,11 +1,7 @@
 #!/bin/bash
 
-#cd app/src
-
 if [[ "${1}" == "celery" ]]; then
-  .venv/bin/celery -A src.tasks.tasks:celery worker -l INFO
+  celery -A src.tasks.celery_conf worker -l INFO
 elif [[ "${1}" == "flower" ]]; then
-  .venv/bin/celery -A src.tasks.tasks:celery flower
+  celery -A src.tasks.celery_conf flower
  fi
-
-## скрипт для заруска по параметрам celery или flower

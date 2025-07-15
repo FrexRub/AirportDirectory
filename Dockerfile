@@ -16,4 +16,4 @@ COPY alembic /app/alembic
 COPY src /app/src
 COPY docker /app/docker
 
-RUN chmod +x docker/*.sh
+RUN chmod a+x docker/*.sh

@@ -24,7 +24,7 @@ services:
   app:
     build:
       dockerfile: ./Dockerfile
-    command: [ "/app/docker/app.sh" ]
+    command: ["/app/docker/app.sh"]
     expose:
       - 8000
     ports:
@@ -68,10 +68,9 @@ services:
     container_name: celery_app
     command: ["/app/docker/celery.sh", "celery"] # запуск скрипта для запуска celery
     depends_on:
-      - redis
+      - redis_app
     networks:
       - net
-
 
   flower:
     build:
@@ -81,25 +80,13 @@ services:
     container_name: flower_app
     command: ["/app/docker/celery.sh", "flower"]  # запуск скрипта для запуска flower
     depends_on:
-      - redis
+      - redis_app
       - celery
     ports:
       - 5555:5555
     networks:
       - net
 
-
-#  certbot:
-#    image: certbot/certbot
-#    container_name: certbot
-#    volumes:
-#      - ./nginx/ssl:/etc/letsencrypt  # Сохраняем сертификаты в ./nginx/ssl
-#      - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
-#    command: certonly --webroot --agree-tos --email frex@mail.ru --webroot-path /usr/share/nginx/html -d airportcards.ru -d www.airportcards.ru
-#    depends_on:
-#      - nginx
-#    networks:
-#      - net
 
 volumes:
   postgres_volume:
