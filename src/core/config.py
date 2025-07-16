@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -28,19 +28,9 @@ class SettingConn(BaseSettings):
     postgres_host: str = "localhost"
     postgres_port: int = 5432
 
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-
-    SMTP_USER: str
-    SMTP_HOST: str
-    SMTP_PASSWORD: str
-    SMTP_PORT: int
-
     SECRET_KEY: str = "test"
-    GOOGLE_CLIENT_ID: str = "test"
-    GOOGLE_CLIENT_SECRET: str = "test"
 
-    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
 
 setting_conn = SettingConn()  # type: ignore
@@ -56,8 +46,25 @@ class DbSetting(BaseSettings):
     echo: bool = False
 
 
-class RedisSetting(BaseSettings):
-    url: str = f"redis://{setting_conn.REDIS_HOST}:{setting_conn.REDIS_PORT}"
+class RedisSettings(BaseSettings):
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
+
+    @property
+    def url(self):
+        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
+
+class EmailSettings(BaseSettings):
+    smtp_host: str
+    smtp_port: int
+    smtp_user: str
+    smtp_password: SecretStr
+
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
 
 class AuthJWT(BaseModel):
@@ -68,7 +75,8 @@ class AuthJWT(BaseModel):
 
 class Setting(BaseSettings):
     db: DbSetting = DbSetting()
-    redis: RedisSetting = RedisSetting()
+    redis: RedisSettings = RedisSettings()
+    email_settings: EmailSettings = EmailSettings()
     auth_jwt: AuthJWT = AuthJWT()
 
 
