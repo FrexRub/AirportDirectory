@@ -74,8 +74,10 @@ class Setting(BaseSettings):
     db: DbSetting = DbSetting()
     redis: RedisSettings = RedisSettings()
     email_settings: EmailSettings = EmailSettings()
-    secret_key: SecretStr
     auth_jwt: AuthJWT = AuthJWT()
+    secret_key: SecretStr
+    templates_dir: str = "templates"
+    frontend_url: str
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
