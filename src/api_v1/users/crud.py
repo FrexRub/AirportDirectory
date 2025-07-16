@@ -2,7 +2,8 @@ import logging
 from typing import Optional, Union
 from uuid import UUID
 
-from sqlalchemy import select
+import jwt
+from sqlalchemy import select, update
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +21,7 @@ from src.core.exceptions import (
     NotFindUser,
     UniqueViolationError,
 )
-from src.core.jwt_utils import create_hash_password
+from src.core.jwt_utils import create_hash_password, decode_jwt
 from src.models.user import User
 
 configure_logging(logging.INFO)
@@ -178,4 +179,29 @@ async def delete_user_db(session: AsyncSession, user: User) -> None:
     """
     logger.info("Delete user by id %s" % user.id)
     await session.delete(user)
+    await session.commit()
+
+
+async def confirm_user(session: AsyncSession, token: str) -> None:
+    """
+    Устанавливает статус подтверждения почты пользователя
+    :param session: сессия
+    :type session: AsyncSession
+    :param token: данные удаляемого пользователя
+    :type token: str
+    :rtype: None
+    :return:
+    """
+    try:
+        payload = await decode_jwt(token)
+    except jwt.ExpiredSignatureError:
+        raise ErrorInData("Session expired. Please register again")
+    except jwt.DecodeError:
+        raise ErrorInData("Error in date")
+
+    id_user = UUID(payload["sub"])
+    logger.info("Update status email user by id %s" % id_user)
+
+    stmt = update(User).where(User.id == id_user).values(is_verified=True, is_active=True)
+    await session.execute(stmt)
     await session.commit()

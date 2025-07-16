@@ -7,6 +7,7 @@ from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.users.crud import (
+    confirm_user,
     create_user,
     find_user_by_email,
     get_user_from_db,
@@ -55,8 +56,15 @@ async def get_register_confirm(
     """
     Подтверждение регистрации пользователя через почту
     """
-
-    return {"result": token}
+    try:
+        await confirm_user(session=session, token=token)
+    except ErrorInData as exp:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"{exp}",
+        )
+    else:
+        return {"result": token}
 
 
 @router.get(
