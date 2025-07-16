@@ -5,7 +5,7 @@ from typing import Any, Optional
 import bcrypt
 import jwt
 
-from src.core.config import setting, setting_conn
+from src.core.config import setting
 
 
 async def create_hash_password(password: str) -> bytes:
@@ -44,7 +44,7 @@ async def validate_password(
 
 async def encode_jwt(
     payload: dict[str, Any],
-    key: str = setting_conn.SECRET_KEY,
+    key: str = setting.secret_key.get_secret_value(),
     algorithm: str = setting.auth_jwt.algorithm,
 ) -> str:
     """
@@ -66,7 +66,7 @@ async def encode_jwt(
 
 async def decode_jwt(
     token: str | bytes,
-    key: str = setting_conn.SECRET_KEY,
+    key: str = setting.secret_key.get_secret_value(),
     algorithm: str = setting.auth_jwt.algorithm,
 ) -> dict[str, Any]:
     """

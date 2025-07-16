@@ -9,7 +9,7 @@ from fastapi_pagination.utils import FastAPIPaginationWarning
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.api_v1 import router as api_router
-from src.core.config import configure_logging, setting_conn
+from src.core.config import configure_logging, setting
 
 description = """
     API airport directory
@@ -43,7 +43,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(SessionMiddleware, secret_key=setting_conn.SECRET_KEY)
+app.add_middleware(SessionMiddleware, secret_key=setting.secret_key.get_secret_value())
 
 app.include_router(router=api_router)
 

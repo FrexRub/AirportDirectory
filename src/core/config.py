@@ -21,29 +21,26 @@ def configure_logging(level: int = logging.INFO) -> None:
     )
 
 
-class SettingConn(BaseSettings):
+class DbSetting(BaseSettings):
     postgres_user: str = "test"
     postgres_password: str = "test"
     postgres_db: str = "testdb"
     postgres_host: str = "localhost"
     postgres_port: int = 5432
 
-    SECRET_KEY: str = "test"
+    echo: bool = False
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
-
-setting_conn = SettingConn()  # type: ignore
-
-
-class DbSetting(BaseSettings):
-    url: str = (
-        f"postgresql+asyncpg://"
-        f"{setting_conn.postgres_user}:{setting_conn.postgres_password}"
-        f"@{setting_conn.postgres_host}:{setting_conn.postgres_port}"
-        f"/{setting_conn.postgres_db}"
-    )
-    echo: bool = False
+    @property
+    def url(self):
+        res: str = (
+            f"postgresql+asyncpg://"
+            f"{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}"
+            f"/{self.postgres_db}"
+        )
+        return res
 
 
 class RedisSettings(BaseSettings):
@@ -77,7 +74,10 @@ class Setting(BaseSettings):
     db: DbSetting = DbSetting()
     redis: RedisSettings = RedisSettings()
     email_settings: EmailSettings = EmailSettings()
+    secret_key: SecretStr
     auth_jwt: AuthJWT = AuthJWT()
+
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
 
 setting = Setting()
