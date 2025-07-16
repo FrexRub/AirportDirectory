@@ -2,7 +2,7 @@ import logging
 import smtplib
 from email.message import EmailMessage
 
-from src.core.config import configure_logging, setting_conn
+from src.core.config import configure_logging, setting
 from src.tasks.celery_conf import app
 
 configure_logging(logging.INFO)
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def generation_email_about_registration(email_user: str, name_user: str):
     email = EmailMessage()
     email["Subject"] = "Сообщение о регистрации"
-    email["From"] = setting_conn.SMTP_USER
+    email["From"] = setting.email_settings.smtp_user
     email["To"] = email_user
 
     email.set_content(
@@ -29,16 +29,20 @@ def generation_email_about_registration(email_user: str, name_user: str):
 def send_email_about_registration(self, topic: str, email_user: str, name_user: str):
     logger.info(f"Start send email to {email_user}")
     if topic == "info":
-        email = generation_email_about_registration(email_user, name_user)
+        message = generation_email_about_registration(email_user, name_user)
     else:
         logger.info("Не указана тема")
         return
 
-    with smtplib.SMTP(setting_conn.SMTP_HOST, setting_conn.SMTP_PORT) as server:
+    # with smtplib.SMTP_SSL(setting.email_settings.smtp_host, setting.email_settings.smtp_port) as server:
+    with smtplib.SMTP(setting.email_settings.smtp_host, setting.email_settings.smtp_port) as server:
         try:
             server.starttls()
-            server.login(setting_conn.SMTP_USER, setting_conn.SMTP_PASSWORD)
-            server.send_message(email)
+            server.login(
+                setting.email_settings.smtp_user,
+                setting.email_settings.smtp_password.get_secret_value(),
+            )
+            server.send_message(msg=message)
         except smtplib.SMTPException as exc:
             logger.exception(f"Error send mail, {exc}")
             self.retry(exc=exc)
