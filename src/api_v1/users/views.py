@@ -44,6 +44,22 @@ logger = logging.getLogger(__name__)
 
 
 @router.get(
+    "/register_confirm",
+    # response_model=UserBaseSchemas,
+    status_code=status.HTTP_200_OK,
+)
+async def get_register_confirm(
+    token: str,
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Подтверждение регистрации пользователя через почту
+    """
+
+    return {"result": token}
+
+
+@router.get(
     "/me",
     response_model=UserBaseSchemas,
     status_code=status.HTTP_200_OK,
@@ -174,7 +190,12 @@ async def user_register(
         await redis.set(str(user.id), refresh_token)
 
         logger.info("Sending a user registration email")
-        send_email_about_registration.delay(topic="info", email_user=new_user.email, name_user=new_user.full_name)
+        send_email_about_registration.delay(
+            topic="confirm",
+            email_user=new_user.email,
+            name_user=new_user.full_name,
+            token=access_token,
+        )
 
         return OutUserSchemas(
             access_token=access_token,
