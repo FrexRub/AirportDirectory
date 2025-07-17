@@ -101,6 +101,13 @@ async def get_mail_confirm(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session expired. Please login again",
         )
+    except jwt.DecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Error in request",
+        )
+
+    logger.info("JWT: %s" % token)
 
     id_user = UUID(payload["sub"])
     user: User = await get_user_by_id(session=session, id_user=id_user)
@@ -110,6 +117,7 @@ async def get_mail_confirm(
         user=str(user.id),
         expire_minutes=setting.auth_jwt.access_token_expire_minutes,
     )
+    logger.info("New JWT: %s" % access_token)
 
     response.set_cookie(
         key=COOKIE_NAME,
