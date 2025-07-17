@@ -21,7 +21,6 @@ from src.api_v1.users.schemas import (
     LoginSchemas,
     OutUserSchemas,
     TokenSchemas,
-    UserBaseSchemas,
     UserCreateSchemas,
     UserInfoSchemas,
     UserUpdatePartialSchemas,
@@ -132,13 +131,13 @@ async def get_mail_confirm(
 
 @router.get(
     "/me",
-    response_model=UserBaseSchemas,
+    response_model=UserInfoSchemas,
     status_code=status.HTTP_200_OK,
 )
 async def get_info_about_me(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user_authorization),
-) -> UserBaseSchemas:
+) -> UserInfoSchemas:
     """
     Возвращает информацию об авторизованном пользователе
     """
@@ -148,7 +147,14 @@ async def get_info_about_me(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user not found",
         )
-    return UserBaseSchemas(**find_user.__dict__)
+
+    return UserInfoSchemas(
+        id=str(find_user.id),
+        email=find_user.email,
+        full_name=find_user.full_name,
+        is_active=find_user.is_active,
+        is_verified=find_user.is_verified,
+    )
 
 
 @router.post("/login", response_model=OutUserSchemas, status_code=status.HTTP_202_ACCEPTED)
