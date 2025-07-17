@@ -65,6 +65,7 @@
                 </div>
             </div>
         </nav>
+        <!-- Профиль пользователя -->
         <div class="user-modal" v-if="showUserModal" @click.self="showUserModal = false">
             <div class="user-modal-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -85,7 +86,27 @@
                     <div class="mb-4">
                         <label class="form-label text-muted">Email</label>
                         <p class="fs-5">{{ userData.email }}</p>
+                        <!-- Блок с уведомлением о неподтвержденной почте -->
+                        <div v-if="!userData.is_verified" class="alert alert-warning mt-2 p-2">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-exclamation-circle me-2"></i>
+                                <span>Email не подтвержден</span>
+                            </div>
+                            <p class="small mb-1 mt-2">Не получили письмо с подтверждением?</p>
+                            <button 
+                                @click="resendVerificationEmail"
+                                class="btn btn-sm btn-outline-primary"
+                                :disabled="resendLoading"
+                            >
+                                <span v-if="resendLoading" class="spinner-border spinner-border-sm me-1"></span>
+                                Отправить письмо повторно
+                            </button>
+                            <div v-if="resendSuccess" class="text-success small mt-2">
+                                Письмо отправлено! Проверьте вашу почту.
+                            </div>
+                        </div>
                     </div>
+
                     <button @click="showUserModal = false" class="btn btn-danger w-100">Закрыть окно</button>
                 </div>
                 
