@@ -1,7 +1,9 @@
 import logging
 from typing import Optional
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request, Response, status
+import jwt
+from fastapi import APIRouter, Depends, Request, Response, Security, status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
 from redis import Redis
@@ -11,19 +13,21 @@ from src.api_v1.users.crud import (
     confirm_user,
     create_user,
     find_user_by_email,
+    get_user_by_id,
     get_user_from_db,
     update_user_db,
 )
 from src.api_v1.users.schemas import (
     LoginSchemas,
     OutUserSchemas,
+    TokenSchemas,
     UserBaseSchemas,
     UserCreateSchemas,
     UserInfoSchemas,
     UserUpdatePartialSchemas,
     UserUpdateSchemas,
 )
-from src.core.config import COOKIE_NAME, configure_logging, setting
+from src.core.config import COOKIE_NAME, api_key_header, configure_logging, setting
 from src.core.database import get_async_session, get_redis_connection
 from src.core.depends import (
     current_user_authorization,
@@ -35,7 +39,7 @@ from src.core.exceptions import (
     NotFindUser,
     UniqueViolationError,
 )
-from src.core.jwt_utils import create_jwt, validate_password
+from src.core.jwt_utils import create_jwt, decode_jwt, validate_password
 from src.models.user import User
 from src.tasks.tasks import send_email_about_registration
 
@@ -47,7 +51,6 @@ logger = logging.getLogger(__name__)
 
 @router.get(
     "/register_confirm",
-    # response_model=UserBaseSchemas,
     status_code=status.HTTP_200_OK,
 )
 async def get_register_confirm(
@@ -66,6 +69,65 @@ async def get_register_confirm(
         )
     else:
         return RedirectResponse(url="https://airportcards.ru/", status_code=status.HTTP_302_FOUND)
+
+
+@router.get(
+    "/mail_confirm",
+    response_model=TokenSchemas,
+    status_code=status.HTTP_200_OK,
+)
+async def get_mail_confirm(
+    response: Response,
+    session: AsyncSession = Depends(get_async_session),
+    authorization_header: str = Security(api_key_header),
+):
+    """
+    Запрос на подтверждение почты
+    """
+    if authorization_header is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized")
+
+    if "Bearer " not in authorization_header:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized")
+
+    token = authorization_header.replace("Bearer ", "")
+
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not authorized")
+
+    try:
+        payload = await decode_jwt(token)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired. Please login again",
+        )
+
+    id_user = UUID(payload["sub"])
+    user: User = await get_user_by_id(session=session, id_user=id_user)
+
+    logger.info("Generate new JWT for user by name %s" % user.full_name)
+    access_token: str = await create_jwt(
+        user=str(user.id),
+        expire_minutes=setting.auth_jwt.access_token_expire_minutes,
+    )
+
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=access_token,
+        httponly=True,
+        secure=False,  # True в production
+        samesite="lax",
+        path="/",
+    )
+
+    send_email_about_registration.delay(
+        topic="confirm",
+        email_user=user.email,
+        name_user=user.full_name,
+        token=access_token,
+    )
+    return TokenSchemas(access_token=access_token)
 
 
 @router.get(
@@ -137,7 +199,13 @@ async def user_login(
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(id=str(user.id), email=data_login.username, full_name=user.full_name),
+            user=UserInfoSchemas(
+                id=str(user.id),
+                email=data_login.username,
+                full_name=user.full_name,
+                is_active=user.is_active,
+                is_verified=user.is_verified,
+            ),
         )
     else:
         raise HTTPException(
@@ -209,7 +277,13 @@ async def user_register(
         return OutUserSchemas(
             access_token=access_token,
             token_type="bearer",
-            user=UserInfoSchemas(id=str(user.id), email=new_user.email, full_name=new_user.full_name),
+            user=UserInfoSchemas(
+                id=str(user.id),
+                email=new_user.email,
+                full_name=new_user.full_name,
+                is_active=user.is_active,
+                is_verified=user.is_verified,
+            ),
         )
 
 

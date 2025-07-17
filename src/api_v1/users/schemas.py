@@ -42,6 +42,8 @@ class UserCreateSchemas(BaseModel):
 
 class UserInfoSchemas(UserBaseSchemas):
     id: str
+    is_active: bool
+    is_verified: bool
 
 
 class OutUserSchemas(BaseModel):
@@ -53,3 +55,7 @@ class OutUserSchemas(BaseModel):
 class LoginSchemas(BaseModel):
     username: str
     password: str
+
+
+class TokenSchemas(BaseModel):
+    access_token: str
