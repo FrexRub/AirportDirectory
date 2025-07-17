@@ -6,18 +6,16 @@ Create Date: 2025-07-11 09:52:41.542386
 
 """
 
-from typing import Sequence, Union
 from pathlib import Path
+from typing import Sequence, Union
 
 import pandas as pd
-from alembic import op
-from sqlalchemy import orm
-from sqlalchemy import exists, select
-
-from src.models.city import City
-from src.core.config import BASE_DIR
+from sqlalchemy import exists, orm, select
 from sqlalchemy.engine import Result
 
+from alembic import op
+from src.core.config import BASE_DIR
+from src.models.city import City
 
 # revision identifiers, used by Alembic.
 revision: str = "bdf939c377bf"
