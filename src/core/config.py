@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,6 +12,8 @@ DIR_FOTO = "foto"
 
 COOKIE_NAME = "bonds_airport"
 CACHE_EXP = 3600
+
+api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
 def configure_logging(level: int = logging.INFO) -> None:
