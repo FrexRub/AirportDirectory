@@ -3,6 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.exceptions import HTTPException
+from fastapi.responses import RedirectResponse
 from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -64,7 +65,7 @@ async def get_register_confirm(
             detail=f"{exp}",
         )
     else:
-        return {"result": token}
+        return RedirectResponse(url="https://airportcards.ru/", status_code=status.HTTP_302_FOUND)
 
 
 @router.get(
