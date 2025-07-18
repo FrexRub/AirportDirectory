@@ -36,7 +36,7 @@ class UserCreateSchemas(BaseModel):
     @field_validator("hashed_password")
     def validate_password(cls, value: str) -> str:
         if not re.match(PATTERN_PASSWORD, value):
-            raise ValueError("Invalid password")
+            raise ValueError("Пароль должен состоять из цифр, букв (с заглавной) и специальных символов")
         return value
 
 

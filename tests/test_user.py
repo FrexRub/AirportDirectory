@@ -45,7 +45,7 @@ async def test_user_unique_email(
         "password": password,
     }
     response = await client.post("/api/users/register", json=user)
-    assert response.json() == {"detail": "The email address is already in use"}
+    assert response.json() == {"detail": "Данный адрес электронной почты уже используется"}
     assert response.status_code == 400
 
 
@@ -60,7 +60,10 @@ async def test_user_bad_password(
         "password": "123",
     }
     response = await client.post("/api/users/register", json=user)
-    assert response.json()["detail"][0]["msg"] == "Value error, Invalid password"
+    assert (
+        response.json()["detail"][0]["msg"]
+        == "Value error, Пароль должен состоять из цифр, букв (с заглавной) и специальных символов"
+    )
     assert response.status_code == 422
 
 
