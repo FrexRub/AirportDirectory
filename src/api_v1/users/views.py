@@ -61,11 +61,9 @@ async def get_register_confirm(
     """
     try:
         await confirm_user(session=session, token=token)
-    except ErrorInData as exp:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"{exp}",
-        )
+    except ErrorInData:
+        redirect_url = "https://airportcards.ru/?error=invalid_token"
+        return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
     else:
         return RedirectResponse(url="https://airportcards.ru/", status_code=status.HTTP_302_FOUND)
 
