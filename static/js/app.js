@@ -619,6 +619,24 @@ createApp({
 
         // Загружаем данные сразу при запуске
         onMounted(() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const success = urlParams.get('success');
+
+            if (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ошибка подтверждения',
+                    text: decodeURIComponent(error),
+                });
+            } else if (success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Успешно!',
+                    text: 'Ваша почта подтверждена.',
+                });
+            }
+
             setInterval(() => {
                 if (selectedAirport.value?.time_zone) {
                     localTime.value = formatLocalTime(selectedAirport.value.time_zone);

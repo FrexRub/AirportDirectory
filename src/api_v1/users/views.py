@@ -65,7 +65,7 @@ async def get_register_confirm(
         redirect_url = "https://airportcards.ru/?error=invalid_token"
         return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
     else:
-        return RedirectResponse(url="https://airportcards.ru/", status_code=status.HTTP_302_FOUND)
+        return RedirectResponse(url="https://airportcards.ru/?success=true", status_code=status.HTTP_302_FOUND)
 
 
 @router.get(
