@@ -120,10 +120,6 @@ createApp({
                 userLoading.value = true;
                 error.value = null;
                 const token = localStorage.getItem('authToken');
-
-                console.log("Данные jwt token for user:", {
-                    token
-                });
                 
                 const response = await fetch(`${baseURL}/api/users/me`, {
                     headers: {
@@ -148,9 +144,7 @@ createApp({
 
                 userData.value = await response.json();
 
-                console.log("Данные полученные с сервера:", {
-                    userData
-                });
+                console.log("Данные пользователя (userData) полученны с сервера:");
                 
             } catch (err) {
                 error.value = 'Ошибка загрузки данных. ' + err.message;
@@ -162,7 +156,8 @@ createApp({
 
         const openUserModal = () => {
             showUserModal.value = true;
-            if (!userData.value) {
+
+            if (!userData.value || (userData.value && !userData.value.is_verified)) {
                 fetchUserData();
             }
         };
@@ -578,7 +573,7 @@ createApp({
                 
                 try {
                     const token = localStorage.getItem('authToken');
-  
+
                     const response = await fetch(`${baseURL}/api/users/mail_confirm`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -601,10 +596,11 @@ createApp({
                     }
 
                     // Успешный ответ
-                    const access_token_user = await response.json();
+                    const data = await response.json();
+                    const accessToken = data.access_token;
 
                     // Сохранение токена в localStorage
-                    localStorage.setItem('authToken', access_token_user);
+                    localStorage.setItem('authToken', accessToken);
                     console.log('Отпрака писмь для подтверждения:');
 
                     resendSuccess.value = true;
