@@ -86,12 +86,12 @@ async def create_user(session: AsyncSession, user_data: UserCreateSchemas) -> Us
     logger.info("Start create user with email %s" % user_data.email)
     result: Optional[User] = await find_user_by_email(session=session, email=user_data.email)
     if result:
-        raise EmailInUse("The email address is already in use")
+        raise EmailInUse("Данный адрес электронной почты уже используется")
 
     try:
         new_user: User = User(**user_data.model_dump())
     except ValueError as exc:
-        raise ErrorInData(exc)
+        raise ErrorInData(str(exc))
     else:
         new_user_hashed_password = await create_hash_password(new_user.hashed_password)
         new_user.hashed_password = new_user_hashed_password.decode()

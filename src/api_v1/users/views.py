@@ -247,7 +247,7 @@ async def user_register(
     except EmailInUse:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The email address is already in use",
+            detail="Данный адрес электронной почты уже используется",
         )
     except ErrorInData as exp:
         raise HTTPException(

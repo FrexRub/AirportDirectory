@@ -174,47 +174,81 @@
             </div>
         </div>
         
-
         <!-- Модальное окно авторизации/регистрации -->
-        <div class="modal" :class="{ 'show': showAuthModal }" style="display: block;" v-if="showAuthModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ isLoginForm ? 'Вход' : 'Регистрация' }}</h5>
-                        <button @click="showAuthModal = false" class="btn-close"></button>
+        <div class="modal auth-modal" :class="{ 'show': showAuthModal }" style="display: block;" v-if="showAuthModal">
+            <div class="modal-dialog modal-dialog-centered modal-blue-theme">
+                <div class="modal-content auth-modal">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title auth-modal__title">
+                            {{ isLoginForm ? 'Вход в систему' : 'Создание аккаунта' }}
+                        </h5>
+                        <button @click="showAuthModal = false" class="btn-close" aria-label="Закрыть"></button>
                     </div>
-                    <div class="modal-body">
+                    
+                    <div class="modal-body pt-0">
                         <form @submit.prevent="isLoginForm ? login() : register()" class="auth-form">
-                            <div class="mb-3" v-if="!isLoginForm">
-                                <label class="form-label">Имя</label>
-                                <input v-model="authData.name" type="text" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input v-model="authData.email" type="email" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Пароль</label>
-                                <input v-model="authData.password" type="password" class="form-control" required>
-                            </div>
-
-                            <div class="mb-3" v-if="!isLoginForm">
-                                <label class="form-label">Подтвердите пароль</label>
+                            <!-- Поле имени -->
+                            <div class="mb-4" v-if="!isLoginForm">
+                                <label class="form-label auth-modal__label">Ваше имя</label>
                                 <input 
-                                  v-model="authData.confirmPassword" 
-                                  type="password" 
-                                  class="form-control" 
-                                  required
+                                    v-model="authData.name" 
+                                    type="text" 
+                                    class="form-control auth-modal__input" 
+                                    placeholder="Иван Иванов"
+                                    required
                                 >
-                                <div v-if="passwordError" class="text-danger mt-1">{{ passwordError }}</div>
-                              </div>
-
-                            <button type="submit" class="btn btn-primary w-100">
-                                {{ isLoginForm ? 'Войти' : 'Зарегистрироваться' }}
+                            </div>
+                            
+                            <!-- Поле email -->
+                            <div class="mb-4">
+                                <label class="form-label auth-modal__label">Электронная почта</label>
+                                <input 
+                                    v-model="authData.email" 
+                                    type="email" 
+                                    class="form-control auth-modal__input" 
+                                    placeholder="example@mail.ru"
+                                    required
+                                >
+                            </div>
+                            
+                            <!-- Поле пароля -->
+                            <div class="mb-4">
+                                <label class="form-label auth-modal__label">Пароль</label>
+                                <input 
+                                    v-model="authData.password" 
+                                    type="password" 
+                                    class="form-control auth-modal__input" 
+                                    placeholder="Не менее 8 символов"
+                                    required
+                                >
+                            </div>
+                            
+                            <!-- Подтверждение пароля -->
+                            <div class="mb-4" v-if="!isLoginForm">
+                                <label class="form-label auth-modal__label">Подтвердите пароль</label>
+                                <input 
+                                    v-model="authData.confirmPassword" 
+                                    type="password" 
+                                    class="form-control auth-modal__input" 
+                                    placeholder="Повторите пароль"
+                                    required
+                                >
+                                <div v-if="passwordError" class="auth-modal__error mt-2">
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    {{ passwordError }}
+                                </div>
+                            </div>
+                            
+                            <!-- Кнопка отправки -->
+                            <button type="submit" class="btn auth-modal__submit w-100 mb-3">
+                                {{ isLoginForm ? 'Войти' : 'Создать аккаунт' }}
                             </button>
-                            <div class="mt-3 text-center">
-                                <a href="#" @click.prevent="isLoginForm = !isLoginForm">
-                                    {{ isLoginForm ? 'Нет аккаунта? Зарегистрируйтесь' : 'Уже есть аккаунт? Войдите' }}
+                            
+                            <!-- Ссылка переключения -->
+                            <div class="auth-modal__switch text-center pt-2">
+                                {{ isLoginForm ? 'Ещё нет аккаунта?' : 'Уже зарегистрированы?' }}
+                                <a href="#" @click.prevent="isLoginForm = !isLoginForm" class="auth-modal__switch-link">
+                                    {{ isLoginForm ? 'Зарегистрироваться' : 'Войти' }}
                                 </a>
                             </div>
                         </form>
@@ -222,7 +256,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Модальное окно с деталями аэропорта -->
         <div class="airport-detail" v-if="showDetailsModal">
             <div class="airport-detail-header">

@@ -2,6 +2,7 @@
 @import "airport_detail.css";
 @import "airports_nearest.css";
 @import "city.css";
+@import "auth.css";
 
 /* Фиксированная навигационная панель */
 .navbar {
