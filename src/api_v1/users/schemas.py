@@ -36,12 +36,14 @@ class UserCreateSchemas(BaseModel):
     @field_validator("hashed_password")
     def validate_password(cls, value: str) -> str:
         if not re.match(PATTERN_PASSWORD, value):
-            raise ValueError("Invalid password")
+            raise ValueError("Пароль должен состоять из цифр, букв (с заглавной) и специальных символов")
         return value
 
 
 class UserInfoSchemas(UserBaseSchemas):
     id: str
+    is_active: bool
+    is_verified: bool
 
 
 class OutUserSchemas(BaseModel):
@@ -53,3 +55,7 @@ class OutUserSchemas(BaseModel):
 class LoginSchemas(BaseModel):
     username: str
     password: str
+
+
+class TokenSchemas(BaseModel):
+    access_token: str

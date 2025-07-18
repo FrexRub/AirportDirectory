@@ -1,0 +1,121 @@
+/* Переопределение цветов Bootstrap модального окна */
+.modal-content {
+  --bs-modal-bg: #f0f8ff; /* Светло-голубой фон */
+  --bs-modal-border-color: #b6e0fe; /* Голубая граница */
+  --bs-modal-header-border-color: #d0e3ff; /* Граница заголовка */
+  --bs-modal-footer-border-color: #d0e3ff; /* Граница футера */
+}
+
+/* Стили для кнопок */
+.btn-primary {
+  --bs-btn-bg: #4da6ff; /* Голубой цвет кнопки */
+  --bs-btn-border-color: #4da6ff;
+  --bs-btn-hover-bg: #3a8be6; /* Темнее при наведении */
+  --bs-btn-hover-border-color: #3a8be6;
+  --bs-btn-active-bg: #2a7bd6;
+  --bs-btn-active-border-color: #2a7bd6;
+}
+
+/* Дополнительные стили для улучшения внешнего вида */
+.modal-header {
+  background-color: #e6f2ff; /* Светло-голубой фон заголовка */
+  border-bottom: 1px solid var(--bs-modal-header-border-color);
+}
+
+.modal-footer {
+  background-color: #e6f2ff;
+  border-top: 1px solid var(--bs-modal-footer-border-color);
+}
+
+.modal-blue-theme .modal-content {
+  background-color: #f0f8ff;
+  border-color: #b6e0fe;
+}
+
+.modal-blue-theme .modal-header {
+  background-color: #e6f2ff;
+  border-bottom-color: #d0e3ff;
+}
+
+.modal-blue-theme .btn-primary {
+  background-color: #4da6ff;
+  border-color: #4da6ff;
+}
+
+/* Основные стили */
+.auth-modal {
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    background-color: #f8fbfe;
+    border: 1px solid #e1f0ff;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+}
+
+/* Заголовок */
+.auth-modal__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Поля ввода */
+.auth-modal__input {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #d1e3f8;
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+
+.auth-modal__input:focus {
+    border-color: #4da6ff;
+    box-shadow: 0 0 0 3px rgba(77, 166, 255, 0.1);
+}
+
+/* Метки */
+.auth-modal__label {
+    font-weight: 500;
+    color: #d0da16;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+/* Кнопка */
+.auth-modal__submit {
+    background-color: #4da6ff;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.auth-modal__submit:hover {
+    background-color: #3a8be6;
+    transform: translateY(-1px);
+}
+
+/* Ошибки */
+.auth-modal__error {
+    color: #ff4d4f;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Переключатель форм */
+.auth-modal__switch {
+    color: #040339;
+    font-size: 1.0rem;
+}
+
+.auth-modal__switch-link {
+    color: #0d0367;
+    font-weight: 500;
+    margin-left: 5px;
+}
+
+.auth-modal__switch-link:hover {
+    text-decoration: underline;
+}

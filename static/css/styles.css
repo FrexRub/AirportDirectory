@@ -2,6 +2,7 @@
 @import "airport_detail.css";
 @import "airports_nearest.css";
 @import "city.css";
+@import "auth.css";
 
 /* Фиксированная навигационная панель */
 .navbar {
@@ -71,7 +72,7 @@ body {
     padding: 25px;
     border-radius: 10px;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
@@ -95,6 +96,24 @@ body {
 
 .page-item.active .page-link {
     background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.btn-outline-primary {
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.text-success {
+    color: #198754;
 }
 
 /* Адаптация под мобильные устройства */
