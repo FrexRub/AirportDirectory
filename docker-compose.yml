@@ -45,12 +45,13 @@ services:
     build: ./nginx
     container_name: nginx
     restart: unless-stopped
+    user: "${UID:-101}:${GID:-101}"
     environment:
       TZ: "Europe/Moscow"
     volumes:
       - ./var/log/nginx:/var/log/nginx
       - ./static:/usr/share/nginx/html/static
-      - ./nginx/ssl/live/airportcards.ru:/etc/nginx/ssl  # Монтируем сертификаты напрямую
+      - ./nginx/ssl/live/airportcards.ru:/etc/nginx/ssl:ro  # Монтируем сертификаты напрямую
       - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
     ports:
       - 80:80
