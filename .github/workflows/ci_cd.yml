@@ -70,11 +70,11 @@ jobs:
 
       - name: Copy deployment files to server
         run: |
-          scp -i private_key -o StrictHostKeyChecking=no .env srub@77.233.222.107:/home/srub/AirportDirectory/
+          scp -i ~/.ssh/private_key -o StrictHostKeyChecking=no .env srub@77.233.222.107:/home/srub/AirportDirectory/
 
       - name: SSH into server and deploy
         run: |
-          ssh -i private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -i -i ~/.ssh/private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd AirportDirectory/
             sudo docker compose down || true
             docker compose up -d --build
