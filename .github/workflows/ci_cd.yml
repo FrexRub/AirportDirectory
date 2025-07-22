@@ -72,17 +72,17 @@ jobs:
         run: |
           scp -i ~/.ssh/private_key -o StrictHostKeyChecking=no .env ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/AirportDirectory/
 
-      - name: print .env
-        run: |
-          echo .env
-          echo /home/srub/AirportDirectory/.env
-
       - name: SSH into server and deploy
         run: |
           ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /home/${{ secrets.SSH_USER }}/AirportDirectory/
+
+            # Авторизация в Docker Hub
+            echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
             docker compose down || true
             git pull origin main
+            docker compose pull
             docker compose up -d --build
           EOF
 
