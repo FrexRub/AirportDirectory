@@ -72,6 +72,11 @@ jobs:
         run: |
           scp -i ~/.ssh/private_key -o StrictHostKeyChecking=no .env ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/srub/AirportDirectory/
 
+      - name: print .env
+        run: |
+          echo .env
+          echo /home/srub/AirportDirectory/.env
+
       - name: SSH into server and deploy
         run: |
           ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
