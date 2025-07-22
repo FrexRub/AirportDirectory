@@ -82,7 +82,7 @@ jobs:
           ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /home/${{ secrets.SSH_USER }}/AirportDirectory/
             docker compose down || true
-            git pull origin master
+            git pull origin main
             docker compose up -d --build
           EOF
 
