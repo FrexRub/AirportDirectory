@@ -66,11 +66,11 @@ jobs:
 
       - name: Test SSH connection
         run: |
-          ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no srub@77.233.222.107 "echo 'SSH connection successful'"
+          ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful'"
 
       - name: Copy deployment files to server
         run: |
-          scp -i ~/.ssh/private_key -o StrictHostKeyChecking=no .env srub@77.233.222.107:/home/srub/AirportDirectory/
+          scp -i ~/.ssh/private_key -o StrictHostKeyChecking=no .env ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/srub/AirportDirectory/
 
       - name: SSH into server and deploy
         run: |
