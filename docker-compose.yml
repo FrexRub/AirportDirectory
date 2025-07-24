@@ -1,3 +1,13 @@
+x-def-logging: &default-logging
+  logging:
+    driver: loki
+    options:
+      loki-url: http://host.docker.internal:3100/loki/api/v1/push
+      loki-batch-size: 100
+      loki-retries: 2
+      loki-max-backoff: 1000ms
+      loki-timeout: 1s
+
 services:
   db_air:
     container_name: db_container
@@ -24,12 +34,13 @@ services:
   app:
     build:
       dockerfile: ./Dockerfile
-    command: ["/app/docker/app.sh"]
+    command: [ "/app/docker/app.sh" ]
     expose:
       - 8000
     ports:
       - 8000:8000
     restart: always
+    <<: *default-logging
     env_file:
       - .env
     volumes:
@@ -41,6 +52,26 @@ services:
     networks:
       - net
 
+  loki:
+    image: grafana/loki:latest
+    environment:
+      TZ: ${SYSTEM_TIMEZONE:-Europe/Moscow}
+    ports:
+      - 3100:3100
+    command: -config.file=/etc/loki/local-config.yaml
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - TZ=${SYSTEM_TIMEZONE:-Europe/Moscow}
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - 3000:3000
+
   nginx:
     build: ./nginx
     container_name: nginx
@@ -50,7 +81,7 @@ services:
     volumes:
       - ./var/log/nginx:/var/log/nginx
       - ./static:/usr/share/nginx/html/static
-      - ./nginx/ssl/live/airportcards.ru:/etc/nginx/ssl:ro  # Монтируем сертификаты напрямую
+      - ./nginx/ssl/live/airportcards.ru:/etc/nginx/ssl:ro
       - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
     ports:
       - 80:80
@@ -66,7 +97,7 @@ services:
     env_file:
       - .env
     container_name: celery_app
-    command: ["/app/docker/celery.sh", "celery"] # запуск скрипта для запуска celery
+    command: [ "/app/docker/celery.sh", "celery" ] # запуск скрипта для запуска celery
     depends_on:
       - redis_app
     networks:
@@ -78,7 +109,7 @@ services:
     env_file:
       - .env
     container_name: flower_app
-    command: ["/app/docker/celery.sh", "flower"]  # запуск скрипта для запуска flower
+    command: [ "/app/docker/celery.sh", "flower" ]  # запуск скрипта для запуска flower
     depends_on:
       - redis_app
       - celery
@@ -86,7 +117,6 @@ services:
       - 5555:5555
     networks:
       - net
-
 
 volumes:
   postgres_volume:
