@@ -6,7 +6,7 @@ import aiohttp
 
 # from authlib.integrations.starlette_client import OAuthError
 # from fastapi import Request
-from src.core.config import configure_logging, setting, state_storage  # , oauth_yandex
+from src.core.config import configure_logging, setting  # , oauth_yandex
 
 # from src.core.exceptions import ExceptAuthentication
 
@@ -15,9 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 def generate_google_oauth_redirect_uri():
-    random_state = secrets.token_urlsafe(16)
-    state_storage.add(random_state)
-
     query_params = {
         "client_id": setting.google.OAUTH_GOOGLE_CLIENT_ID,
         "redirect_uri": setting.google.GOOGLE_REDIRECT_URI,

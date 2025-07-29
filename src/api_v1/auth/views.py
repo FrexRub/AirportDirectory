@@ -25,7 +25,6 @@ from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
 from src.core.config import (
     # COOKIE_NAME,
     configure_logging,
-    state_storage,
     # oauth_yandex,
     setting,
     # templates,

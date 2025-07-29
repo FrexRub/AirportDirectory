@@ -95,5 +95,3 @@ class Setting(BaseSettings):
 
 
 setting = Setting()
-
-state_storage = set()
