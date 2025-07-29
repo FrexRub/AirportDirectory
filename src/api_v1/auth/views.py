@@ -1,12 +1,10 @@
 import logging
-
 from typing import Annotated
 
 import aiohttp
 import jwt
 from fastapi import APIRouter, Body, HTTPException  # Depends, Request, Response, status
-
-# from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
 
@@ -45,8 +43,7 @@ logger = logging.getLogger(__name__)
 @router.get("/google/url")
 def get_google_oauth_redirect_uri():
     uri = generate_google_oauth_redirect_uri()
-    return uri
-    # return RedirectResponse(url=uri, status_code=302)
+    return RedirectResponse(url=uri, status_code=302)
 
 
 @router.post("/google/callback")
@@ -54,10 +51,6 @@ async def handle_code(
     code: Annotated[str, Body()],
     state: Annotated[str, Body()],
 ):
-    if state not in state_storage:
-        raise
-    else:
-        print("Стейт корректный")
     google_token_url = "https://oauth2.googleapis.com/token"
 
     async with aiohttp.ClientSession() as session:

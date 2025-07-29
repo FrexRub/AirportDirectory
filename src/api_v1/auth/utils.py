@@ -1,5 +1,4 @@
 import logging
-import secrets
 import urllib.parse
 
 import aiohttp
