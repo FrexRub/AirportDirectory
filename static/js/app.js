@@ -2,8 +2,8 @@ const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
 createApp({
     setup() {
-//        const baseURL = 'http://localhost:8000';
-         const baseURL = '';
+        // const baseURL = 'http://localhost:8000';
+        const baseURL = '';
 
         // Состояние UI
         const showAuthModal = ref(false);
@@ -33,7 +33,9 @@ createApp({
         const error = ref(null);
         const localTime = ref('');
         const citySearch = ref('');
+        const isLoading = ref(false);
         const cities = ref(window.externalCities || []);
+
 
 
         // Данные пользователя
@@ -568,73 +570,140 @@ createApp({
         };
 
         const resendVerificationEmail = async () => {
-                resendLoading.value = true;
-                resendSuccess.value = false;
+            resendLoading.value = true;
+            resendSuccess.value = false;
 
-                try {
-                    const token = localStorage.getItem('authToken');
+            try {
+                const token = localStorage.getItem('authToken');
 
-                    const response = await fetch(`${baseURL}/api/users/mail_confirm`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                        }
-                    });
-
-                    // Обработка HTTP ошибок
-                    if (!response.ok) {
-                        const errorData = await response.json();
-
-                        if (response.status === 422) {
-                            // Ошибка валидации данных
-                            throw new Error('Некорректные данные: ' +
-                                (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
-                        } else if (response.status === 401) {
-                            throw new Error('Необходимо заново авторизоваться');
-                        } else {
-                            throw new Error(errorData.detail || 'Ошибка сервера');
-                        }
+                const response = await fetch(`${baseURL}/api/users/mail_confirm`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
                     }
+                });
 
-                    // Успешный ответ
-                    const data = await response.json();
-                    const accessToken = data.access_token;
+                // Обработка HTTP ошибок
+                if (!response.ok) {
+                    const errorData = await response.json();
 
-                    // Сохранение токена в localStorage
-                    localStorage.setItem('authToken', accessToken);
-                    console.log('Отпрака писмь для подтверждения:');
-
-                    resendSuccess.value = true;
-
-                    // Автоматически скрываем сообщение через 5 секунд
-                    setTimeout(() => {
-                        resendSuccess.value = false;
-                    }, 5000);
-
-                } catch (error) {
-                    alert('Ошибка при отправке письма: ' + (error.response?.data?.message || 'Попробуйте позже'));
-                } finally {
-                    resendLoading.value = false;
+                    if (response.status === 422) {
+                        // Ошибка валидации данных
+                        throw new Error('Некорректные данные: ' +
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                    } else if (response.status === 401) {
+                        throw new Error('Необходимо заново авторизоваться');
+                    } else {
+                        throw new Error(errorData.detail || 'Ошибка сервера');
+                    }
                 }
+
+                // Успешный ответ
+                const data = await response.json();
+                const accessToken = data.access_token;
+
+                // Сохранение токена в localStorage
+                localStorage.setItem('authToken', accessToken);
+                console.log('Отпрака писмь для подтверждения:');
+
+                resendSuccess.value = true;
+
+                // Автоматически скрываем сообщение через 5 секунд
+                setTimeout(() => {
+                    resendSuccess.value = false;
+                }, 5000);
+
+            } catch (error) {
+                alert('Ошибка при отправке письма: ' + (error.response?.data?.message || 'Попробуйте позже'));
+            } finally {
+                resendLoading.value = false;
             }
+        }
+
+        const redirectToGoogleAuth = async () => {
+            try {
+                isLoading.value = true;
+
+                // Вызываем ваш FastAPI endpoint для получения URL авторизации Google
+                const response = await fetch(`${baseURL}/api/auth/google/url`);
+
+                if (response.ok) {
+                    // Получаем URL и перенаправляем пользователя
+                    const data = await response.json();
+                    window.location.href = data.url;
+                } else {
+                    throw new Error('Не удалось получить URL для авторизации Google');
+                }
+            } catch (error) {
+                console.error('Ошибка при перенаправлении на Google Auth:', error);
+                alert('Произошла ошибка при попытке авторизации через Google');
+            } finally {
+                isLoading.value = false;
+            }
+        };
+
+        // callback
+        const handleGoogleCallback = async (code) => {
+            try {
+                // 1. Получаем код из URL
+                const urlParams = new URLSearchParams(window.location.search);
+                // const authCode = urlParams.get('code');
+
+                // if (!authCode) {
+                //     throw new Error('Код авторизации не получен');
+                // }
+
+                // 2. Отправляем код на бэкенд
+                const response = await fetch(`${baseURL}/api/auth/google/callback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: authCode })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка сервера при авторизации');
+                }
+
+                // 3. Получаем данные пользователя
+                const data = await response.json();
+
+                // 4. Сохраняем токен и перенаправляем
+                localStorage.setItem('authToken', data.token);
+                window.location.href = '/profile';
+
+            } catch (err) {
+                console.error('Google auth error:', err);
+                error.value = err.message || 'Ошибка авторизации через Google';
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const retry = () => {
+            window.location.href = '/api/auth/google/url';
+        };
 
         // Загружаем данные сразу при запуске
         onMounted(() => {
             const urlParams = new URLSearchParams(window.location.search);
+            console.log('Парсинг URI:');
             const error = urlParams.get('error');
             const success = urlParams.get('success');
+            const authCode = urlParams.get('code');
+
+            console.log('error:', error);
+            console.log('success:', success);
+            console.log('authCode:', authCode);
 
             if (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Ошибка подтверждения',
-                    text: decodeURIComponent(error),
-                });
+                alert('Ошибка: ' + decodeURIComponent(error));
+                window.location.href = '/';
             } else if (success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Успешно!',
-                    text: 'Ваша почта подтверждена.',
-                });
+                alert('Успешно! Ваша почта подтверждена.');
+                window.location.href = '/';
+            } else if (authCode) {
+                handleGoogleCallback(authCode)
             }
 
             setInterval(() => {
@@ -644,6 +713,7 @@ createApp({
             }, 1000);
             getUserLocation();
             fetchAirports(1);
+            // handleGoogleCallback();
         });
 
         return {
@@ -686,7 +756,8 @@ createApp({
             register,
             logout,
             fetchAirports,
-            resendVerificationEmail
+            resendVerificationEmail,
+            redirectToGoogleAuth
         };
     }
 }).mount('#app');
