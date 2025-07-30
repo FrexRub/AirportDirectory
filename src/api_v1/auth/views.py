@@ -4,7 +4,6 @@ from typing import Annotated
 import aiohttp
 import jwt
 from fastapi import APIRouter, Body, HTTPException  # Depends, Request, Response, status
-from fastapi.responses import RedirectResponse
 
 from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
 
@@ -43,7 +42,8 @@ logger = logging.getLogger(__name__)
 @router.get("/google/url")
 def get_google_oauth_redirect_uri():
     uri = generate_google_oauth_redirect_uri()
-    return RedirectResponse(url=uri, status_code=302)
+    return {"url": uri}  # Redirect выполняется на фронтенде
+    # return RedirectResponse(url=uri, status_code=302)
 
 
 @router.post("/google/callback")
