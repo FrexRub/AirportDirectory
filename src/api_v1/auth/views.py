@@ -3,13 +3,13 @@ from typing import Annotated
 
 import aiohttp
 import jwt
-from fastapi import APIRouter, Body, HTTPException  # Depends, Request, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api_v1.auth.crud import check_auth_user
+from src.api_v1.auth.schemas import AuthUserSchemas
 from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
 
-# # from fastapi.exceptions import HTTPException
-# # from sqlalchemy.ext.asyncio import AsyncSession
-# # from starlette.responses import RedirectResponse
 #
 # from src.api_v1.users.crud import (
 #     create_user_without_password,
@@ -26,11 +26,11 @@ from src.core.config import (
     setting,
     # templates,
 )
+from src.core.database import get_async_session
 
-# from src.core.database import get_async_session
 # from src.core.exceptions import ErrorInData
 # from src.core.jwt_utils import create_jwt
-# from src.models.user import User
+from src.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -43,18 +43,17 @@ logger = logging.getLogger(__name__)
 def get_google_oauth_redirect_uri():
     uri = generate_google_oauth_redirect_uri()
     return {"url": uri}  # Redirect выполняется на фронтенде
-    # return RedirectResponse(url=uri, status_code=302)
 
 
 @router.post("/google/callback")
 async def handle_code(
     code: Annotated[str, Body()],
-    state: Annotated[str, Body()],
+    session: AsyncSession = Depends(get_async_session),
 ):
     google_token_url = "https://oauth2.googleapis.com/token"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
+    async with aiohttp.ClientSession() as client:
+        async with client.post(
             url=google_token_url,
             data={
                 "client_id": setting.google.OAUTH_GOOGLE_CLIENT_ID,
@@ -65,23 +64,34 @@ async def handle_code(
             },
             ssl=False,
         ) as response:
-            res = await response.json()
-            if "access_token" not in res:
+            response_data = await response.json()
+            if "access_token" not in response_data:
                 raise HTTPException(status_code=400, detail="Error getting access token from Google")
 
-            print(f"{res=}")
-            id_token = res["id_token"]
-            # access_token = res["access_token"]
-            user_data = jwt.decode(
-                id_token,
-                algorithms=["RS256"],
-                options={"verify_signature": False},
-            )
+            id_token = response_data["id_token"]
 
-    return {
-        "user": user_data,
-    }
+    try:
+        user_data_full = jwt.decode(
+            id_token,
+            algorithms=["RS256"],
+            options={"verify_signature": False},
+        )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Error jwt token from Google",
+        )
 
+    user_data: AuthUserSchemas = AuthUserSchemas(
+        name=user_data_full["name"],
+        email=user_data_full["email"],
+        picture=user_data_full["picture"],
+    )
+
+    # найти/зарегистрировать пользователя в БД, вернуть пользователя
+    user: User = await check_auth_user(session=session, user_info=user_data)
+    # сгенерить токен
+    return {"user": user}
     #
     # @router.get("/login/yandex")
     # async def login(request: Request):
