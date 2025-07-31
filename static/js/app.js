@@ -644,15 +644,7 @@ createApp({
         // callback
         const handleGoogleCallback = async (code) => {
             try {
-                // 1. Получаем код из URL
-                const urlParams = new URLSearchParams(window.location.search);
-                // const authCode = urlParams.get('code');
-
-                // if (!authCode) {
-                //     throw new Error('Код авторизации не получен');
-                // }
-
-                // 2. Отправляем код на бэкенд
+                // Отправляем код на бэкенд
                 const response = await fetch(`${baseURL}/api/auth/google/callback`, {
                     method: 'POST',
                     headers: {
@@ -670,7 +662,7 @@ createApp({
 
                 // 4. Сохраняем токен и перенаправляем
                 localStorage.setItem('authToken', data.token);
-                window.location.href = '/profile';
+                window.location.href = '/';
 
             } catch (err) {
                 console.error('Google auth error:', err);
