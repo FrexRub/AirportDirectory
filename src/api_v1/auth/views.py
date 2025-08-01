@@ -1,14 +1,13 @@
 import logging
-from typing import Annotated
 
 import aiohttp
 import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.auth.crud import check_auth_user
-from src.api_v1.auth.schemas import AuthUserSchemas
+from src.api_v1.auth.schemas import AuthUserSchemas, GoogleCallbackSchemas
 from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
 from src.api_v1.users.schemas import OutUserSchemas, UserInfoSchemas
 
@@ -55,7 +54,7 @@ def get_google_oauth_redirect_uri():
 async def handle_code(
     response: Response,
     request: Request,
-    code: Annotated[str, Body()],
+    code: GoogleCallbackSchemas,
     session: AsyncSession = Depends(get_async_session),
     redis: Redis = Depends(get_redis_connection),
 ):
@@ -69,11 +68,11 @@ async def handle_code(
                 "client_secret": setting.google.OAUTH_GOOGLE_CLIENT_SECRET,
                 "grant_type": "authorization_code",
                 "redirect_uri": setting.google.GOOGLE_REDIRECT_URI,
-                "code": code,
+                "code": code.code,
             },
             ssl=False,
-        ) as response:
-            response_data = await response.json()
+        ) as resp:
+            response_data = await resp.json()
             if "access_token" not in response_data:
                 raise HTTPException(status_code=400, detail="Error getting access token from Google")
 

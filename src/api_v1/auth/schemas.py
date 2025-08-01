@@ -10,3 +10,7 @@ class AuthUserSchemas(BaseModel):
     name: str
     email: str
     picture: str
+
+
+class GoogleCallbackSchemas(BaseModel):
+    code: str
