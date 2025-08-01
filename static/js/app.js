@@ -410,12 +410,10 @@ createApp({
                 // Сохранение токена в localStorage
                 localStorage.setItem('authToken', access_token);
                 localStorage.setItem('Id', user.id);
-                console.log('Успешная авторизация:', isUser.value.name);
+                localStorage.setItem('userName', user.full_name || user.email.split('@')[0]);
+                localStorage.setItem('userEmail', user.email);
 
-                // Cookies.set('access_token', access_token, {
-                //     secure: true,
-                //     sameSite: 'strict'
-                // });
+                console.log('Успешная авторизация:', isUser.value.name);
 
                 // Закрытие модального окна и сброс формы
                 showAuthModal.value = false;
@@ -481,6 +479,8 @@ createApp({
             // Сохранение токена в localStorage
             localStorage.setItem('authToken', access_token);
             localStorage.setItem('Id', user.id);
+            localStorage.setItem('userName', user.full_name || user.email.split('@')[0]);
+            localStorage.setItem('userEmail', user.email);
 
             // Закрытие модального окна и сброс формы
             showAuthModal.value = false;
@@ -641,7 +641,8 @@ createApp({
         };
 
         // callback
-        const handleGoogleCallback = async (code) => {
+        const handleGoogleCallback = async (authCode) => {
+            console.log('Start Callback with code:', authCode);
             try {
                 // Отправляем код на бэкенд
                 const response = await fetch(`${baseURL}/api/auth/google/callback`, {
@@ -649,7 +650,7 @@ createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ code })
+                    body: JSON.stringify({ code: authCode })
                 });
 
                 // Обработка HTTP ошибок
@@ -672,20 +673,28 @@ createApp({
                 // Успешный ответ
                 const { access_token, token_type, user } = await response.json();
 
-
                 // Сохранение данных пользователя
                 isUser.value = {
-                    name: user.full_name || authData.value.email.split('@')[0],
+                    name: user.full_name || user.email.split('@')[0],  // Используем данные из Google
                     email: user.email,
                     token: access_token
                 };
 
-
                 // Сохранение токена в localStorage
                 localStorage.setItem('authToken', access_token);
                 localStorage.setItem('Id', user.id);
+                localStorage.setItem('userName', user.full_name || user.email.split('@')[0]);
+                localStorage.setItem('userEmail', user.email);
 
-                window.location.href = '/';
+                console.log('Успешная авторизация через Google:', isUser.value.name);
+
+                // Очищаем URL от параметров
+                window.history.replaceState({}, '', '/');
+
+                // Закрытие модального окна и сброс формы
+                showAuthModal.value = false;
+                authData.value = { name: '', email: '', password: '' };
+
 
             } catch (err) {
                 console.error('Google auth error:', err);
@@ -707,9 +716,15 @@ createApp({
             const success = urlParams.get('success');
             const authCode = urlParams.get('code');
 
-            console.log('error:', error);
-            console.log('success:', success);
-            console.log('authCode:', authCode);
+            const token = localStorage.getItem('authToken');
+
+            if (token) {
+                isUser.value = {
+                    name: localStorage.getItem('userName') || 'Пользователь',
+                    email: localStorage.getItem('userEmail') || '',
+                    token: token
+                };
+            }
 
             if (error) {
                 alert('Ошибка: ' + decodeURIComponent(error));
@@ -718,7 +733,10 @@ createApp({
                 alert('Успешно! Ваша почта подтверждена.');
                 window.location.href = '/';
             } else if (authCode) {
-                handleGoogleCallback(authCode)
+                handleGoogleCallback(authCode).then(() => {
+                    // Редирект только после успешной обработки
+                    window.location.href = '/';
+                });
             }
 
             setInterval(() => {
