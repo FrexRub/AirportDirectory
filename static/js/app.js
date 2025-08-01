@@ -37,7 +37,6 @@ createApp({
         const cities = ref(window.externalCities || []);
 
 
-
         // Данные пользователя
         const isUser = ref(null);
         const authData = ref({
@@ -650,18 +649,42 @@ createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ code: authCode })
+                    body: JSON.stringify({ code })
                 });
 
+                // Обработка HTTP ошибок
                 if (!response.ok) {
-                    throw new Error('Ошибка сервера при авторизации');
+                    const errorData = await response.json();
+
+                    if (response.status === 422) {
+                        // Ошибка валидации данных
+                        throw new Error('Некорректные данные: ' +
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                    } else if (response.status === 401) {
+                        throw new Error('Неверные учетные данные: ' +
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                        // throw new Error('Неверные учетные данные');
+                    } else {
+                        throw new Error(errorData.detail || 'Ошибка сервера');
+                    }
                 }
 
-                // 3. Получаем данные пользователя
-                const data = await response.json();
+                // Успешный ответ
+                const { access_token, token_type, user } = await response.json();
 
-                // 4. Сохраняем токен и перенаправляем
-                localStorage.setItem('authToken', data.token);
+
+                // Сохранение данных пользователя
+                isUser.value = {
+                    name: user.full_name || authData.value.email.split('@')[0],
+                    email: user.email,
+                    token: access_token
+                };
+
+
+                // Сохранение токена в localStorage
+                localStorage.setItem('authToken', access_token);
+                localStorage.setItem('Id', user.id);
+
                 window.location.href = '/';
 
             } catch (err) {
@@ -705,7 +728,6 @@ createApp({
             }, 1000);
             getUserLocation();
             fetchAirports(1);
-            // handleGoogleCallback();
         });
 
         return {
