@@ -3,12 +3,14 @@ from typing import Annotated
 
 import aiohttp
 import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
+from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.auth.crud import check_auth_user
 from src.api_v1.auth.schemas import AuthUserSchemas
 from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
+from src.api_v1.users.schemas import OutUserSchemas, UserInfoSchemas
 
 #
 # from src.api_v1.users.crud import (
@@ -20,16 +22,15 @@ from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
 # from src.api_v1.auth.schemas import LoginSchemas
 # from src.api_v1.auth.utils import get_access_token, get_yandex_user_data
 from src.core.config import (
+    COOKIE_NAME,
+    # templates,
     # COOKIE_NAME,
     configure_logging,
     # oauth_yandex,
     setting,
-    # templates,
 )
-from src.core.database import get_async_session
-
-# from src.core.exceptions import ErrorInData
-# from src.core.jwt_utils import create_jwt
+from src.core.database import get_async_session, get_redis_connection
+from src.core.jwt_utils import create_jwt
 from src.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -45,10 +46,18 @@ def get_google_oauth_redirect_uri():
     return {"url": uri}  # Redirect выполняется на фронтенде
 
 
-@router.post("/google/callback")
+@router.post(
+    "/google/callback",
+    response_model=OutUserSchemas,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=True,
+)
 async def handle_code(
+    response: Response,
+    request: Request,
     code: Annotated[str, Body()],
     session: AsyncSession = Depends(get_async_session),
+    redis: Redis = Depends(get_redis_connection),
 ):
     google_token_url = "https://oauth2.googleapis.com/token"
 
@@ -90,8 +99,42 @@ async def handle_code(
 
     # найти/зарегистрировать пользователя в БД, вернуть пользователя
     user: User = await check_auth_user(session=session, user_info=user_data)
+
     # сгенерить токен
-    return {"user": user}
+    logger.info("Generate JWT for user by name %s" % user.full_name)
+    access_token: str = await create_jwt(
+        user=str(user.id),
+        expire_minutes=setting.auth_jwt.access_token_expire_minutes,
+    )
+    refresh_token: str = await create_jwt(
+        user=str(user.id),
+        expire_minutes=setting.auth_jwt.refresh_token_expire_minutes,
+    )
+
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=access_token,
+        httponly=True,
+        secure=False,  # True в production
+        samesite="lax",
+        path="/",
+    )
+
+    request.session["user"] = {"family_name": user.full_name, "id": str(user.id)}
+    await redis.set(str(user.id), refresh_token)
+
+    return OutUserSchemas(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserInfoSchemas(
+            id=str(user.id),
+            email=user.email,
+            full_name=user.full_name,
+            is_active=user.is_active,
+            is_verified=user.is_verified,
+        ),
+    )
+
     #
     # @router.get("/login/yandex")
     # async def login(request: Request):
