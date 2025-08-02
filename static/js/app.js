@@ -641,7 +641,7 @@ createApp({
         };
 
         // callback
-        const handleGoogleCallback = async (authCode) => {
+        const handleGoogleCallback = async (authCode, state) => {
             console.log('Start Callback with code:', authCode);
             try {
                 // Отправляем код на бэкенд
@@ -650,7 +650,7 @@ createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ code: authCode })
+                    body: JSON.stringify({ code: authCode, state: state })
                 });
 
                 // Обработка HTTP ошибок
@@ -715,6 +715,7 @@ createApp({
             const error = urlParams.get('error');
             const success = urlParams.get('success');
             const authCode = urlParams.get('code');
+            const state = urlParams.get('state')
 
             const token = localStorage.getItem('authToken');
 
@@ -732,8 +733,8 @@ createApp({
             } else if (success) {
                 alert('Успешно! Ваша почта подтверждена.');
                 window.location.href = '/';
-            } else if (authCode) {
-                handleGoogleCallback(authCode).then(() => {
+            } else if (authCode && state) {
+                handleGoogleCallback(authCode, state).then(() => {
                     // Редирект только после успешной обработки
                     window.location.href = '/';
                 });

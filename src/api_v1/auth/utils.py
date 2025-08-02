@@ -1,10 +1,13 @@
 import logging
+import secrets
 import urllib.parse
 
 import aiohttp
 
 # from authlib.integrations.starlette_client import OAuthError
 # from fastapi import Request
+from redis import Redis
+
 from src.core.config import configure_logging, setting  # , oauth_yandex
 
 # from src.core.exceptions import ExceptAuthentication
@@ -13,7 +16,10 @@ configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def generate_google_oauth_redirect_uri():
+async def generate_google_oauth_redirect_uri(db_cache: Redis):
+    random_state = secrets.token_urlsafe(16)
+    await db_cache.set(random_state, "state", ex=300)
+
     query_params = {
         "client_id": setting.google.OAUTH_GOOGLE_CLIENT_ID,
         "redirect_uri": setting.google.GOOGLE_REDIRECT_URI,
@@ -25,6 +31,7 @@ def generate_google_oauth_redirect_uri():
                 "email",
             ]
         ),
+        "state": random_state,
     }
 
     query_string = urllib.parse.urlencode(query_params, quote_via=urllib.parse.quote)

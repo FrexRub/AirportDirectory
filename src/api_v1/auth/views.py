@@ -28,7 +28,7 @@ from src.core.config import (
     # oauth_yandex,
     setting,
 )
-from src.core.database import get_async_session, get_redis_connection
+from src.core.database import get_async_session, get_cache_connection, get_redis_connection
 from src.core.jwt_utils import create_jwt
 from src.models.user import User
 
@@ -40,8 +40,8 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/google/url")
-def get_google_oauth_redirect_uri():
-    uri = generate_google_oauth_redirect_uri()
+async def get_google_oauth_redirect_uri(db_cache: Redis = Depends(get_cache_connection)):
+    uri = await generate_google_oauth_redirect_uri(db_cache)
     return {"url": uri}  # Redirect выполняется на фронтенде
 
 
@@ -54,10 +54,16 @@ def get_google_oauth_redirect_uri():
 async def handle_code(
     response: Response,
     request: Request,
-    code: GoogleCallbackSchemas,
+    code_state: GoogleCallbackSchemas,
     session: AsyncSession = Depends(get_async_session),
     redis: Redis = Depends(get_redis_connection),
+    db_cache: Redis = Depends(get_cache_connection),
 ):
+    google_state: str = await db_cache.get(code_state.state)
+
+    if google_state is None:
+        raise HTTPException(status_code=400, detail="Error state for Google")
+
     google_token_url = "https://oauth2.googleapis.com/token"
 
     async with aiohttp.ClientSession() as client:
@@ -68,7 +74,7 @@ async def handle_code(
                 "client_secret": setting.google.OAUTH_GOOGLE_CLIENT_SECRET,
                 "grant_type": "authorization_code",
                 "redirect_uri": setting.google.GOOGLE_REDIRECT_URI,
-                "code": code.code,
+                "code": code_state.code,
             },
             ssl=False,
         ) as resp:
