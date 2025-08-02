@@ -76,7 +76,7 @@ async def handle_code(
                 "redirect_uri": setting.google.GOOGLE_REDIRECT_URI,
                 "code": code_state.code,
             },
-            ssl=False,
+            ssl=True,  # в разработке ssl=False
         ) as resp:
             response_data = await resp.json()
             if "access_token" not in response_data:
