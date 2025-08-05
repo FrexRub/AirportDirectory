@@ -1,0 +1,79 @@
+services:
+  db_air:
+    container_name: db_container
+    image: postgis/postgis:16-3.5
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - net
+
+  redis_app:
+    image: redis
+    command: --port 6379
+    expose:
+      - 6379
+    restart: always
+    networks:
+      - net
+
+  app:
+    build:
+      dockerfile: ./Dockerfile
+    command: [ "/app/docker/app.sh" ]
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    depends_on:
+      - db_air
+      - redis_app
+    networks:
+      - net
+
+  nginx:
+    build: ./nginx/test
+    container_name: nginx
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+    volumes:
+      - ./var/log/nginx:/var/log/nginx
+      - ./static:/usr/share/nginx/html/static
+    ports:
+      - 80:80
+    depends_on:
+      - app
+    networks:
+      - net
+
+  celery:
+    build:
+      context: .
+    env_file:
+      - .env
+    container_name: celery_app
+    command: [ "/app/docker/celery.sh", "celery" ] # запуск скрипта для запуска celery
+    depends_on:
+      - redis_app
+    networks:
+      - net
+
+
+volumes:
+  postgres_volume:
+  data:
+
+networks:
+  net:
+    driver: bridge

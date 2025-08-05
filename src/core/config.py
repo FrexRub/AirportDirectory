@@ -73,11 +73,20 @@ class AuthJWT(BaseModel):
     refresh_token_expire_minutes: int = 60 * 24 * 7
 
 
+class AuthGoogle(BaseSettings):
+    OAUTH_GOOGLE_CLIENT_ID: str = "test"
+    OAUTH_GOOGLE_CLIENT_SECRET: str = "test"
+    GOOGLE_REDIRECT_URI: str = "test"
+
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
+
+
 class Setting(BaseSettings):
     db: DbSetting = DbSetting()
     redis: RedisSettings = RedisSettings()
     email_settings: EmailSettings = EmailSettings()
     auth_jwt: AuthJWT = AuthJWT()
+    google: AuthGoogle = AuthGoogle()
     secret_key: SecretStr = "test"
     templates_dir: str = "templates"
     frontend_url: str = "test"
