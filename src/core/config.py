@@ -74,9 +74,9 @@ class AuthJWT(BaseModel):
 
 
 class AuthGoogle(BaseSettings):
-    OAUTH_GOOGLE_CLIENT_ID: str
-    OAUTH_GOOGLE_CLIENT_SECRET: str
-    GOOGLE_REDIRECT_URI: str
+    OAUTH_GOOGLE_CLIENT_ID: str = "test"
+    OAUTH_GOOGLE_CLIENT_SECRET: str = "test"
+    GOOGLE_REDIRECT_URI: str = "test"
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
