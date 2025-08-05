@@ -1,13 +1,14 @@
+# ruff: isort: skip_file
 import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Hashable
 
 import pandas as pd
-from geoalchemy2.functions import ST_Point
 from sqlalchemy import exists, select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
+from geoalchemy2.functions import ST_Point  # noqa: I001
 
 from src.core.config import BASE_DIR, configure_logging
 from src.core.database import async_session_maker
