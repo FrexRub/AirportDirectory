@@ -106,7 +106,13 @@ async def get_mail_confirm(
         )
 
     id_user = UUID(payload["sub"])
-    user: User = await get_user_by_id(session=session, id_user=id_user)
+    user: Optional[User] = await get_user_by_id(session=session, id_user=id_user)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found",
+        )
 
     logger.info("Generate new JWT for user by name %s" % user.full_name)
     access_token: str = await create_jwt(

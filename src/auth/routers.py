@@ -47,17 +47,17 @@ async def user_login_by_password(
             detail=f"The user with the username: {data_login.email} not found",
         )
 
-    if await validate_password(password=data_login.password, hashed_password=user.hashed_password.encode()):
+    if await validate_password(password=data_login.password, hashed_password=user.hashed_password):
         access_token: str = await create_jwt(
             user=str(user.id),
             expire_minutes=setting.auth_jwt.access_token_expire_minutes,
         )
-        refresh_token: str = await create_jwt(
-            user=str(user.id),
-            expire_minutes=setting.auth_jwt.refresh_token_expire_minutes,
-        )
+        # refresh_token: str = await create_jwt(
+        #     user=str(user.id),
+        #     expire_minutes=setting.auth_jwt.refresh_token_expire_minutes,
+        # )
 
-        user.refresh_token = refresh_token
+        # user.refresh_token = refresh_token
         await session.commit()
 
         resp = Response(

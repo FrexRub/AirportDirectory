@@ -62,7 +62,7 @@ class EmailSettings(BaseSettings):
     smtp_host: str = "test"
     smtp_port: int = 587
     smtp_user: str = "test"
-    smtp_password: SecretStr = "test"
+    smtp_password: SecretStr = SecretStr("test")
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
@@ -78,7 +78,7 @@ class Setting(BaseSettings):
     redis: RedisSettings = RedisSettings()
     email_settings: EmailSettings = EmailSettings()
     auth_jwt: AuthJWT = AuthJWT()
-    secret_key: SecretStr = "test"
+    secret_key: SecretStr = SecretStr("test")
     templates_dir: str = "templates"
     frontend_url: str = "test"
 

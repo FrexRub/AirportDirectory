@@ -12,7 +12,7 @@ DIR_NAME = Path(__file__).parent.parent
 templates = Jinja2Templates(directory=DIR_NAME / setting.templates_dir)
 
 
-def generation_message_about_registration(name_user: str):
+def generation_message_about_registration(name_user: str) -> str:
     message: str = (
         f"<div>"
         f'<h1 style="color: red;">Здравствуйте, {name_user}, '
@@ -22,10 +22,10 @@ def generation_message_about_registration(name_user: str):
     return message
 
 
-def generation_message_confirmation(token: str):
+def generation_message_confirmation(token: str) -> str:
     template = templates.get_template(name="confirmation_email.html")
-    confirmation_url = f"{setting.frontend_url}/users/register_confirm?token={token}"
-    message = template.render(confirmation_url=confirmation_url)
+    confirmation_url: str = f"{setting.frontend_url}/users/register_confirm?token={token}"
+    message: str = template.render(confirmation_url=confirmation_url)
     return message
 
 
@@ -44,10 +44,12 @@ def send_email_about_registration(
 
     if topic == "info":
         email["Subject"] = "Уведомление о регистрации"
-        message = generation_message_about_registration(name_user)
+        message: str = generation_message_about_registration(name_user)
     else:
         email["Subject"] = "Подтверждение регистрации"
-        message = generation_message_confirmation(token=token)
+        if token is None:
+            raise ValueError("Token is required for confirmation email")
+        message: str = generation_message_confirmation(token=token)
 
     email.add_alternative(message, subtype="html")
 
