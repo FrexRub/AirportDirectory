@@ -53,10 +53,8 @@ def send_email_about_registration(
 
     email.add_alternative(message, subtype="html")
 
-    # with smtplib.SMTP_SSL(setting.email_settings.smtp_host, setting.email_settings.smtp_port) as server:
-    with smtplib.SMTP(setting.email_settings.smtp_host, setting.email_settings.smtp_port) as server:
+    with smtplib.SMTP_SSL(setting.email_settings.smtp_host, setting.email_settings.smtp_port) as server:
         try:
-            server.starttls()
             server.login(
                 setting.email_settings.smtp_user,
                 setting.email_settings.smtp_password.get_secret_value(),
