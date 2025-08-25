@@ -16,8 +16,14 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
             <div class="container">
                 <!-- Логотип и бренд -->
-                <a class="navbar-brand" href="#">Аэропорты России</a>
-                
+                <a class="navbar-brand"
+                :class="{ 'active': isFirstPage }"
+                href="#"
+                @click.prevent="goToFirstPage"
+                :title="isFirstPage ? 'Вернуться на первую страницу' : 'Вы на первой странице'">
+                    Аэропорты России
+                </a>
+
                 <!-- Геолокация и пагинация (центр) -->
                 <div class="d-flex align-items-center mx-auto">
                     <!-- Геолокация -->
@@ -30,7 +36,7 @@
                             <span class="spinner-border spinner-border-sm"></span>
                         </span>
                     </div>
-                    
+
                     <!-- Компактная пагинация -->
                     <div class="pagination-container">
                         <ul class="pagination pagination-sm mb-0">
@@ -72,12 +78,12 @@
                     <h4 class="mb-0">Профиль пользователя</h4>
                     <button @click="showUserModal = false" class="btn-close"></button>
                 </div>
-                
+
                 <div v-if="userLoading" class="text-center py-4">
                     <div class="spinner-border text-primary"></div>
                     <p class="mt-2">Загрузка данных...</p>
                 </div>
-                
+
                 <div v-else-if="userData">
                     <div class="mb-3">
                         <label class="form-label text-muted">Имя</label>
@@ -93,7 +99,7 @@
                                 <span>Email не подтвержден</span>
                             </div>
                             <p class="small mb-1 mt-2">Не получили письмо с подтверждением?</p>
-                            <button 
+                            <button
                                 @click="resendVerificationEmail"
                                 class="btn btn-sm btn-outline-primary"
                                 :disabled="resendLoading"
@@ -109,7 +115,7 @@
 
                     <button @click="showUserModal = false" class="btn btn-danger w-100">Закрыть окно</button>
                 </div>
-                
+
                 <div v-else class="alert alert-danger">
                     Не удалось загрузить данные пользователя
                 </div>
@@ -124,8 +130,8 @@
                     <div class="row"  style="row-gap: 20px;">
                         <div class="col-md-6 col-lg-4" v-for="airport in airports" :key="airport.id">
                             <div class="card airport-card-main mb-4">
-                                <img 
-                                    :src="`./img/logotip/${airport.img_top}`" 
+                                <img
+                                    :src="`./img/logotip/${airport.img_top}`"
                                     class="card-img-top"
                                     :alt="airport.name"
                                 >
@@ -141,7 +147,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Боковая панель с ближайшими аэропортами -->
                 <div class="col-md-3">
                     <div class="nearest-airports sticky-top" style="top: 80px;">
@@ -150,14 +156,14 @@
                         <div class="city-header">
                             <i class="bi bi-building"></i> {{ userCity }}
                         </div>
-                        <div v-for="airport in nearestAirportsCity" 
-                            :key="airport.id" 
+                        <div v-for="airport in nearestAirportsCity"
+                            :key="airport.id"
                             class="nearest-airport-item"
                             :class="{ 'active': selectedAirport && selectedAirport.id === airport.id }"
                             @click="showAirportDetails(airport)">
 
-                            <img 
-                                :src="`./img/logotip/${airport.img_top}`" 
+                            <img
+                                :src="`./img/logotip/${airport.img_top}`"
                                 class="airport-avatar"
                                 :alt="airport.name"
                             >
@@ -173,7 +179,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Модальное окно авторизации/регистрации -->
         <div class="modal auth-modal" :class="{ 'show': showAuthModal }" style="display: block;" v-if="showAuthModal">
             <div class="modal-dialog modal-dialog-centered modal-blue-theme">
@@ -184,52 +190,62 @@
                         </h5>
                         <button @click="showAuthModal = false" class="btn-close" aria-label="Закрыть"></button>
                     </div>
-                    
+
                     <div class="modal-body pt-0">
+                        <!-- Кнопка входа через Google -->
+                        <button @click="redirectToGoogleAuth" class="google-btn mb-3">
+                            <img src="./img/google.webp" width="128" alt="Google">
+                            {{ isLoginForm ? 'Войти через Google' : 'Зарегистрироваться через Google' }}
+                        </button>
+
+                        <div class="divider-with-text">
+                            <span>или</span>
+                        </div>
+
                         <form @submit.prevent="isLoginForm ? login() : register()" class="auth-form">
                             <!-- Поле имени -->
                             <div class="mb-4" v-if="!isLoginForm">
                                 <label class="form-label auth-modal__label">Ваше имя</label>
-                                <input 
-                                    v-model="authData.name" 
-                                    type="text" 
-                                    class="form-control auth-modal__input" 
+                                <input
+                                    v-model="authData.name"
+                                    type="text"
+                                    class="form-control auth-modal__input"
                                     placeholder="Иван Иванов"
                                     required
                                 >
                             </div>
-                            
+
                             <!-- Поле email -->
                             <div class="mb-4">
                                 <label class="form-label auth-modal__label">Электронная почта</label>
-                                <input 
-                                    v-model="authData.email" 
-                                    type="email" 
-                                    class="form-control auth-modal__input" 
+                                <input
+                                    v-model="authData.email"
+                                    type="email"
+                                    class="form-control auth-modal__input"
                                     placeholder="example@mail.ru"
                                     required
                                 >
                             </div>
-                            
+
                             <!-- Поле пароля -->
                             <div class="mb-4">
                                 <label class="form-label auth-modal__label">Пароль</label>
-                                <input 
-                                    v-model="authData.password" 
-                                    type="password" 
-                                    class="form-control auth-modal__input" 
+                                <input
+                                    v-model="authData.password"
+                                    type="password"
+                                    class="form-control auth-modal__input"
                                     placeholder="Не менее 8 символов"
                                     required
                                 >
                             </div>
-                            
+
                             <!-- Подтверждение пароля -->
                             <div class="mb-4" v-if="!isLoginForm">
                                 <label class="form-label auth-modal__label">Подтвердите пароль</label>
-                                <input 
-                                    v-model="authData.confirmPassword" 
-                                    type="password" 
-                                    class="form-control auth-modal__input" 
+                                <input
+                                    v-model="authData.confirmPassword"
+                                    type="password"
+                                    class="form-control auth-modal__input"
                                     placeholder="Повторите пароль"
                                     required
                                 >
@@ -238,12 +254,12 @@
                                     {{ passwordError }}
                                 </div>
                             </div>
-                            
+
                             <!-- Кнопка отправки -->
                             <button type="submit" class="btn auth-modal__submit w-100 mb-3">
                                 {{ isLoginForm ? 'Войти' : 'Создать аккаунт' }}
                             </button>
-                            
+
                             <!-- Ссылка переключения -->
                             <div class="auth-modal__switch text-center pt-2">
                                 {{ isLoginForm ? 'Ещё нет аккаунта?' : 'Уже зарегистрированы?' }}
@@ -267,25 +283,25 @@
             </div>
             <div class="airport-detail-info">
                 <p class="time-info">
-                    <strong class="timezone-label">Временной пояс:</strong> 
+                    <strong class="timezone-label">Временной пояс:</strong>
                     <span class=>{{ selectedAirport.time_zone }}</span>
                     <span style="margin-left: 30px"></span>
-                    <strong class="local-time-label">Текущее время (местное):</strong> 
+                    <strong class="local-time-label">Текущее время (местное):</strong>
                     <span class="local-time">{{ formatLocalTime(selectedAirport.time_zone) }}</span>
                 </p>
                 <p v-if="distance" class="distance-info">
                     <i class="bi bi-signpost-split"></i>
-                    <strong>Расстояние до аэропорта:</strong> 
+                    <strong>Расстояние до аэропорта:</strong>
                     {{ distance.kilometers.toFixed(2) }} км.
                 </p>
                 <p v-else class="distance-info">
                     <strong>Расстояние: </strong> вычисляется...
                 </p>
             </div>
-        
+
             <div class="airport-detail-content">
-                <img :src="`./img/foto/${selectedAirport.img_airport}`" 
-                    class="airport-detail-image" 
+                <img :src="`./img/foto/${selectedAirport.img_airport}`"
+                    class="airport-detail-image"
                     :alt="selectedAirport.name"
                 >
                 <div class="airport-description">
@@ -294,32 +310,32 @@
                     <p><strong>Адрес: </strong><i>{{ selectedAirport.address }}</i></p>
 
                     <!-- Ссылка на карту -->
-                    <a 
-                        :href="`https://yandex.ru/maps/?ll=${selectedAirport.longitude},${selectedAirport.latitude}&z=15`" 
+                    <a
+                        :href="`https://yandex.ru/maps/?ll=${selectedAirport.longitude},${selectedAirport.latitude}&z=15`"
                         target="_blank"
                         class="btn btn-outline-primary btn-sm mt-2"
                     >
                         <i class="bi bi-geo-alt"></i> Яндекс.Карты
                     </a>
                     <span style="margin-left: 30px"></span>
-                    <a 
-                        :href="`https://www.google.com/maps?q=${selectedAirport.latitude},${selectedAirport.longitude}`" 
+                    <a
+                        :href="`https://www.google.com/maps?q=${selectedAirport.latitude},${selectedAirport.longitude}`"
                         target="_blank"
                         class="btn btn-outline-primary btn-sm mt-2"
                     >
                         <i class="bi bi-map"></i> Google.Карты
                     </a>
                     <div class="airport-links">
-                        <a 
-                            :href="selectedAirport.url" 
-                            target="_blank" 
+                        <a
+                            :href="selectedAirport.url"
+                            target="_blank"
                             class="online-board-link">
                             Сайт аэропорта
                         </a>
-                        <a 
+                        <a
                             v-if="selectedAirport.online_tablo"
-                            :href="selectedAirport.online_tablo" 
-                            target="_blank" 
+                            :href="selectedAirport.online_tablo"
+                            target="_blank"
                             class="online-board-link">
                             Онлайн табло
                         </a>
@@ -345,7 +361,7 @@
 
             </div>
         </div>
-        
+
         <!-- Модальное окно выбора города -->
         <div class="modal fade" id="citySelectModal" tabindex="-1" aria-labelledby="citySelectModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -357,10 +373,10 @@
                     <div class="modal-body">
                         <!-- Поисковое поле -->
                         <div class="mb-3">
-                            <input type="text" class="form-control" placeholder="Начните вводить название города" 
+                            <input type="text" class="form-control" placeholder="Начните вводить название города"
                                     v-model="citySearch" @keyup.enter="selectFirstCity">
                         </div>
-                        
+
                         <!-- Список городов -->
                         <div class="list-group cities-columns">
                             <a href="#"
@@ -372,7 +388,7 @@
                                 <span class="city-name">{{ city }}</span>
                             </a>
                         </div>
-                        
+
                         <!-- Сообщение, если города не найдены -->
                         <div v-if="filteredCities.length === 0" class="text-muted mt-3">
                             Город не найден. Попробуйте изменить запрос.
@@ -384,7 +400,7 @@
 
     </div>
 
-    
+
     <!-- Подключаем компоненты и скрипты -->
     <script src="./js/cities-data.js"></script>
     <script src="./js/app.js"></script>

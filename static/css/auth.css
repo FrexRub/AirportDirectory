@@ -44,32 +44,73 @@
 
 /* Основные стили */
 .auth-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 400px;
+    width: 90%;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     background-color: #f8fbfe;
     border: 1px solid #e1f0ff;
     font-size: clamp(1rem, 2vw, 1.2rem);
+    z-index: 1050;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Фон модального окна */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    backdrop-filter: blur(3px);
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Адаптивные стили */
+@media (max-width: 576px) {
+    .auth-modal {
+        width: 95%;
+        padding: 1.5rem;
+    }
 }
 
 /* Заголовок */
 .auth-modal__title {
-    font-size: 1.5rem;
-    font-weight: 600;
     color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
 }
 
 /* Поля ввода */
 .auth-modal__input {
-    padding: 12px 15px;
     border-radius: 8px;
     border: 1px solid #d1e3f8;
-    background-color: #fff;
-    transition: all 0.2s ease;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
 }
 
 .auth-modal__input:focus {
-    border-color: #4da6ff;
-    box-shadow: 0 0 0 3px rgba(77, 166, 255, 0.1);
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.25);
 }
 
 /* Метки */
@@ -82,19 +123,19 @@
 
 /* Кнопка */
 .auth-modal__submit {
-    background-color: #4da6ff;
-    color: white;
+    background-color: #4a90e2;
     border: none;
-    padding: 12px;
-    font-weight: 500;
+    padding: 0.75rem;
     border-radius: 8px;
-    transition: all 0.2s ease;
+    color: white;
+    font-weight: 500;
+    transition: background-color 0.3s;
 }
 
 .auth-modal__submit:hover {
-    background-color: #3a8be6;
-    transform: translateY(-1px);
+    background-color: #3a7bc8;
 }
+
 
 /* Ошибки */
 .auth-modal__error {
@@ -111,11 +152,53 @@
 }
 
 .auth-modal__switch-link {
-    color: #0d0367;
+    color: #134c8d;
+    text-decoration: none;
     font-weight: 500;
-    margin-left: 5px;
 }
 
 .auth-modal__switch-link:hover {
     text-decoration: underline;
+}
+
+.divider-with-text {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin: 1rem 0;
+}
+.divider-with-text::before,
+.divider-with-text::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #dee2e6;
+}
+.divider-with-text::before {
+    margin-right: 0.5em;
+}
+.divider-with-text::after {
+    margin-left: 0.5em;
+}
+
+.google-btn {
+    background-color: white;
+    color: #757575;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+.google-btn:hover {
+    background-color: #f8f9fa;
+}
+.google-btn img {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
 }
