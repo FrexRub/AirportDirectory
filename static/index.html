@@ -293,7 +293,7 @@
                     @click="activeTab = 'reviews'">
                     Отзывы
                     <span v-if="reviews.length > 0" class="tab-rating">
-                        ★ {{ selectedAirport.average_rating.toFixed(1) }}
+                        ★ {{ average_rating.toFixed(1) }}
                     </span>
                     <span class="review-count">({{ reviews.length }})</span>
                 </button>

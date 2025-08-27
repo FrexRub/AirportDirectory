@@ -41,6 +41,7 @@ createApp({
         const reviewText = ref('');
         const reviewRating = ref(5);
         const reviewSending = ref(false);
+        const average_rating = ref(0.0)
         
 
                                       
@@ -698,6 +699,24 @@ createApp({
         };   
 
         // Методы для работы с отзывами
+        const loadAverageRating = async (airportId) => {
+            try {
+                const response = await fetch(`${baseURL}/api/reviews/${airportId}/rating`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                average_rating.value = data.average_rating;
+                console.log('Обновленный рейтинг аэропорта:', average_rating.value);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки рейтинга:', error);
+                average_rating.value = 0.0; // Значение по умолчанию при ошибке
+            }
+        };
+
         const loadReviews = async (airportId) => {
             reviewLoading.value = true;
             try {
@@ -705,20 +724,10 @@ createApp({
                 if (response.ok) {
                     reviews.value = await response.json();
                     console.log('Загрузка отзывов:', reviews.value);
+                    await loadAverageRating(airportId);
                 }
             } catch (error) {
                 console.error('Ошибка загрузки отзывов:', error);
-            }
-
-            try {
-                const response = await fetch(`${baseURL}/api/reviews/${airportId}/rating`);
-                if (response.ok) {
-                    const average_rating = await response.json();
-                    console.log('Загрузка обновленого рейтинга:', average_rating.average_rating);
-                    selectedAirport.average_rating = average_rating.average_rating
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки обновленого рейтинга:', error);
 
             } finally {
                 reviewLoading.value = false;
@@ -747,6 +756,8 @@ createApp({
                 if (response.ok) {
                     reviewText.value = '';
                     reviewRating.value = 5;
+                    
+                    await loadAverageRating(selectedAirport.value.id);
                     loadReviews(selectedAirport.value.id);
                 }
             } catch (error) {
@@ -842,6 +853,7 @@ createApp({
             reviewText,
             reviewRating,
             reviewSending,
+            average_rating,
             formatDate,
             submitReview,
             loadReviews,
