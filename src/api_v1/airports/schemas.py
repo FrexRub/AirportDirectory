@@ -38,7 +38,6 @@ class AirPortOutAllSchemas(BaseModel):
     img_airport: str = Field(description="Имя файла фотографии аэропорта")
     time_zone: str
     online_tablo: str
-    average_rating: float = Field(default=0.0)
 
     @property
     @computed_field(description="Полный URL изображения логотипа")

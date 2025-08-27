@@ -6,7 +6,7 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.airports.crud import get_airport
-from src.api_v1.comments.crude import add_new_comment, get_comment, get_average_rating
+from src.api_v1.comments.crude import add_new_comment, get_average_rating, get_comment
 from src.api_v1.comments.schemas import CommentAddSchemas, CommentAllOutSchemas, CommentAverageRating
 from src.core.config import configure_logging
 from src.core.database import get_async_session
@@ -72,7 +72,7 @@ async def add_comment(
 
 
 @router.get("/reviews/{airport_id}", response_model=list[CommentAllOutSchemas])
-async def get_comments_airport(
+async def get_reviews_airport(
     airport_id: UUID,
     session: AsyncSession = Depends(get_async_session),
 ) -> list[CommentAllOutSchemas]:
