@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,3 +56,17 @@ async def get_comment(session: AsyncSession, id_airport: UUID):
         raise ExceptDB(exc)
 
     return comments
+
+
+async def get_average_rating(session: AsyncSession, id_airport: UUID) -> float:
+    """
+    Возвращает рейтинг аэропорта по отзывам
+    """
+    try:
+        stmt = select(func.avg(AirportComment.rating)).where(AirportComment.airport_id == id_airport)
+        rating_result = await session.execute(stmt)
+        avg_rating = rating_result.scalar()
+    except SQLAlchemyError as exc:
+        raise ExceptDB(exc)
+
+    return float(avg_rating) if avg_rating is not None else 0.0

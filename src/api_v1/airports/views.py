@@ -74,8 +74,7 @@ async def get_airport_by_id(
     airport_json: str = await db_cache.get(str(id))
     if airport_json is None:
         try:
-            airport_obj: Airport = await get_airport(session=session, id_airport=id)
-            airport: AirPortOutAllSchemas = AirPortOutAllSchemas(**airport_obj.__dict__)
+            airport: Airport = await get_airport(session=session, id_airport=id)
         except ExceptDB as exp:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -87,7 +86,7 @@ async def get_airport_by_id(
                 detail=f"{exp}",
             )
         else:
-            airport_json_model: str = await model_to_json(pydantic_model=AirPortOutAllSchemas, object=airport_obj)
+            airport_json_model: str = await model_to_json(pydantic_model=AirPortOutAllSchemas, object=airport)
             await db_cache.set(str(id), airport_json_model, ex=CACHE_EXP)
             logger.info("Write in cache info about airport with id %s", str(id))
     else:

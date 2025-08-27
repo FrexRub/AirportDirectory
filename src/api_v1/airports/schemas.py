@@ -38,12 +38,16 @@ class AirPortOutAllSchemas(BaseModel):
     img_airport: str = Field(description="Имя файла фотографии аэропорта")
     time_zone: str
     online_tablo: str
+    average_rating: float = Field(default=0.0)
 
     @property
     @computed_field(description="Полный URL изображения логотипа")
     def image_url(self) -> str:
         file_name: str = os.path.join(DIR_LOGOTIP, self.img_top)
         return file_name
+
+    class Config:
+        from_attributes = True
 
     @property
     @computed_field(description="Полный URL фото аэропорта")
@@ -59,5 +63,4 @@ class AirPortOutGeoSchemas(BaseModel):
     latitude: float
     longitude: float
     img_top: str
-    # img_airport: str = Field(description="Имя файла фотографии аэропорта")
     distance: Optional[float] = Field(None, description="Distance in meters")

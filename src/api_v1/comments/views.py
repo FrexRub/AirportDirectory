@@ -6,8 +6,8 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api_v1.airports.crud import get_airport
-from src.api_v1.comments.crude import add_new_comment, get_comment
-from src.api_v1.comments.schemas import CommentAddSchemas, CommentAllOutSchemas
+from src.api_v1.comments.crude import add_new_comment, get_comment, get_average_rating
+from src.api_v1.comments.schemas import CommentAddSchemas, CommentAllOutSchemas, CommentAverageRating
 from src.core.config import configure_logging
 from src.core.database import get_async_session
 from src.core.depends import current_user_authorization
@@ -15,13 +15,13 @@ from src.core.exceptions import ErrorInData, ExceptDB, NotFindData
 from src.models.airport import Airport
 from src.models.user import User
 
-router = APIRouter(prefix="/comments", tags=["Comments"])
+router = APIRouter(tags=["Comments"])
 
 configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@router.post("/add", status_code=status.HTTP_201_CREATED)
+@router.post("/reviews", status_code=status.HTTP_201_CREATED)
 async def add_comment(
     comment: CommentAddSchemas,
     session: AsyncSession = Depends(get_async_session),
@@ -71,14 +71,14 @@ async def add_comment(
         )
 
 
-@router.get("/comments", response_model=list[CommentAllOutSchemas])
+@router.get("/reviews/{airport_id}", response_model=list[CommentAllOutSchemas])
 async def get_comments_airport(
-    id: UUID,
+    airport_id: UUID,
     session: AsyncSession = Depends(get_async_session),
 ) -> list[CommentAllOutSchemas]:
-    logger.info("Getting comments about an airport with an id")
+    logger.info("Getting comments about an airport with an id %s" % airport_id)
     try:
-        comments: list[CommentAllOutSchemas] = await get_comment(session=session, id_airport=id)
+        comments: list[CommentAllOutSchemas] = await get_comment(session=session, id_airport=airport_id)
     except ExceptDB as exp:
         logger.error(exp)
         raise HTTPException(
@@ -93,3 +93,20 @@ async def get_comments_airport(
         )
 
     return comments
+
+
+@router.get("/reviews/{airport_id}/rating", response_model=CommentAverageRating)
+async def get_comments_airport(
+    airport_id: UUID,
+    session: AsyncSession = Depends(get_async_session),
+) -> CommentAverageRating:
+    logger.info("Getting average rating airport with an id %s" % airport_id)
+    try:
+        average_rating: float = await get_average_rating(session=session, id_airport=airport_id)
+    except ExceptDB as exp:
+        logger.error(exp)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{exp}",
+        )
+    return CommentAverageRating(average_rating=average_rating)

@@ -2,7 +2,7 @@ from typing import Any, Optional, Sequence
 from uuid import UUID
 
 from geoalchemy2.functions import ST_DistanceSphere, ST_Point
-from sqlalchemy import Float, Row, select
+from sqlalchemy import Float, Row, select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +10,7 @@ from sqlalchemy.sql.expression import cast
 
 from src.core.exceptions import ExceptDB, NotFindData
 from src.models.airport import Airport
+from src.models.comment import AirportComment
 
 from .schemas import AirPortOutGeoSchemas
 
@@ -48,6 +49,12 @@ async def get_airport(session: AsyncSession, id_airport: UUID) -> Airport:
         raise ExceptDB(exc)
     if airport is None:
         raise NotFindData("Airport by id not found")
+    else:
+        rating_stmt = select(func.avg(AirportComment.rating)).where(AirportComment.airport_id == id_airport)
+        rating_result = await session.execute(rating_stmt)
+        avg_rating = rating_result.scalar()
+
+        airport.average_rating = float(avg_rating) if avg_rating is not None else 0.0
     return airport
 
 

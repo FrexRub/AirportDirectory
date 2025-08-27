@@ -1,5 +1,3 @@
-from typing import Optional
-
 from geoalchemy2 import Geometry
 from sqlalchemy import Float, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -28,9 +26,3 @@ class Airport(Base):
     online_tablo: Mapped[str]
 
     comments: Mapped[list["AirportComment"]] = relationship(back_populates="airport", cascade="all, delete-orphan")
-
-    @property
-    def average_rating(self) -> Optional[float]:
-        if not self.comments:
-            return None
-        return sum(comment.rating for comment in self.comments) / len(self.comments)

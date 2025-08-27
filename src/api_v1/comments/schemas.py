@@ -27,3 +27,7 @@ class CommentAllOutSchemas(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CommentAverageRating(BaseModel):
+    average_rating: float = Field(default=0.0)
