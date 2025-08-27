@@ -3,6 +3,7 @@
 @import "airports_nearest.css";
 @import "city.css";
 @import "auth.css";
+@import "review.css";
 
 /* Фиксированная навигационная панель */
 .navbar {
@@ -135,7 +136,7 @@ body {
     .pagination-container {
         display: none; /* Скрываем на маленьких экранах */
     }
-
+    
     .user-info span {
         display: none; /* Скрываем текст приветствия */
     }
