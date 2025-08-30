@@ -760,8 +760,26 @@ createApp({
                     await loadAverageRating(selectedAirport.value.id);
                     loadReviews(selectedAirport.value.id);
                 }
+
+                // Обработка HTTP ошибок
+                if (!response.ok) {
+                    const errorData = await response.json();
+
+                    if (response.status === 422) {
+                        // Ошибка валидации данных
+                        throw new Error('Некорректные данные: ' +
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                    } else if (response.status === 401) {
+                        throw new Error('Необходимо заново авторизоваться');
+                    } else {
+                        throw new Error(errorData.detail || 'Ошибка сервера');
+                    }
+                }
+
+
             } catch (error) {
                 console.error('Ошибка отправки отзыва:', error);
+                alert(error.message || 'Произошла ошибка отправке отзыва');
             } finally {
                 reviewSending.value = false;
             }
