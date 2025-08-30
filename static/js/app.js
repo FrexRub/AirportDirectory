@@ -2,8 +2,8 @@ const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
 createApp({
     setup() {
-        const baseURL = 'http://localhost:8000';
-        // const baseURL = '';
+//        const baseURL = 'http://localhost:8000';
+        const baseURL = '';
 
         // Состояние UI
         const showAuthModal = ref(false);
