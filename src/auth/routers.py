@@ -4,6 +4,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.auth.schemas import LoginSchemas
+from src.auth.utils import get_access_token, get_yandex_user_data
 from starlette.responses import RedirectResponse
 
 from src.api_v1.users.crud import (
@@ -12,8 +14,6 @@ from src.api_v1.users.crud import (
     get_user_from_db,
 )
 from src.api_v1.users.schemas import UserBaseSchemas
-from src.auth.schemas import LoginSchemas
-from src.auth.utils import get_access_token, get_yandex_user_data
 from src.core.config import (
     COOKIE_NAME,
     configure_logging,
@@ -47,17 +47,17 @@ async def user_login_by_password(
             detail=f"The user with the username: {data_login.email} not found",
         )
 
-    if await validate_password(password=data_login.password, hashed_password=user.hashed_password):
+    if await validate_password(password=data_login.password, hashed_password=user.hashed_password.encode()):
         access_token: str = await create_jwt(
             user=str(user.id),
             expire_minutes=setting.auth_jwt.access_token_expire_minutes,
         )
-        # refresh_token: str = await create_jwt(
-        #     user=str(user.id),
-        #     expire_minutes=setting.auth_jwt.refresh_token_expire_minutes,
-        # )
+        refresh_token: str = await create_jwt(
+            user=str(user.id),
+            expire_minutes=setting.auth_jwt.refresh_token_expire_minutes,
+        )
 
-        # user.refresh_token = refresh_token
+        user.refresh_token = refresh_token
         await session.commit()
 
         resp = Response(
