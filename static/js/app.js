@@ -2,8 +2,8 @@ const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
 createApp({
     setup() {
-        // const baseURL = 'http://localhost:8000';
-        const baseURL = '';
+        const baseURL = 'http://localhost:8000';
+        // const baseURL = '';
 
         // Состояние UI
         const showAuthModal = ref(false);
@@ -35,6 +35,14 @@ createApp({
         const citySearch = ref('');
         const isLoading = ref(false);
         const cities = ref(window.externalCities || []);
+        const activeTab = ref('info'); // 'info' или 'reviews'
+        const reviews = ref([]);
+        const reviewLoading = ref(false);
+        const reviewText = ref('');
+        const reviewRating = ref(5);
+        const reviewSending = ref(false);
+        const average_rating = ref(0.0)
+
 
 
         // Данные пользователя
@@ -45,6 +53,8 @@ createApp({
             password: '',
             confirmPassword: ''
         });
+
+        const isFirstPage = computed(() => currentPage.value !== 1);
 
 
         // Методы
@@ -275,11 +285,14 @@ createApp({
             }
         };
 
-        // Переход на конкретную страницу
-        const goToPage = (page) => {
-            fetchAirports(page);
+        // Переход на первую страницу
+        const goToFirstPage = () => {
+            if (currentPage.value !== 1) {
+                fetchAirports(1);
+            }
+            // Прокрутка к верху страницы для лучшего UX
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
-
 
         const showAirportDetails = async (airport) => {
             // получение данных об аэропрте
@@ -354,6 +367,8 @@ createApp({
 
             selectedAirport.value = airport_by_id;
             showDetailsModal.value = true;
+            activeTab.value = 'info'; // Сбрасываем на вкладку информации
+            loadReviews(airport_by_id.id); // Загружаем отзывы
         };
 
         const login = async () => {
@@ -410,10 +425,12 @@ createApp({
                 // Сохранение токена в localStorage
                 localStorage.setItem('authToken', access_token);
                 localStorage.setItem('Id', user.id);
-                localStorage.setItem('userName', user.full_name || user.email.split('@')[0]);
-                localStorage.setItem('userEmail', user.email);
-
                 console.log('Успешная авторизация:', isUser.value.name);
+
+                // Cookies.set('access_token', access_token, {
+                //     secure: true,
+                //     sameSite: 'strict'
+                // });
 
                 // Закрытие модального окна и сброс формы
                 showAuthModal.value = false;
@@ -479,8 +496,6 @@ createApp({
             // Сохранение токена в localStorage
             localStorage.setItem('authToken', access_token);
             localStorage.setItem('Id', user.id);
-            localStorage.setItem('userName', user.full_name || user.email.split('@')[0]);
-            localStorage.setItem('userEmail', user.email);
 
             // Закрытие модального окна и сброс формы
             showAuthModal.value = false;
@@ -641,60 +656,35 @@ createApp({
         };
 
         // callback
-        const handleGoogleCallback = async (authCode, state) => {
-            console.log('Start Callback with code:', authCode);
+        const handleGoogleCallback = async (code) => {
             try {
-                // Отправляем код на бэкенд
+                // 1. Получаем код из URL
+                const urlParams = new URLSearchParams(window.location.search);
+                // const authCode = urlParams.get('code');
+
+                // if (!authCode) {
+                //     throw new Error('Код авторизации не получен');
+                // }
+
+                // 2. Отправляем код на бэкенд
                 const response = await fetch(`${baseURL}/api/auth/google/callback`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ code: authCode, state: state })
+                    body: JSON.stringify({ code: authCode })
                 });
 
-                // Обработка HTTP ошибок
                 if (!response.ok) {
-                    const errorData = await response.json();
-
-                    if (response.status === 422) {
-                        // Ошибка валидации данных
-                        throw new Error('Некорректные данные: ' +
-                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
-                    } else if (response.status === 401) {
-                        throw new Error('Неверные учетные данные: ' +
-                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
-                        // throw new Error('Неверные учетные данные');
-                    } else {
-                        throw new Error(errorData.detail || 'Ошибка сервера');
-                    }
+                    throw new Error('Ошибка сервера при авторизации');
                 }
 
-                // Успешный ответ
-                const { access_token, token_type, user } = await response.json();
+                // 3. Получаем данные пользователя
+                const data = await response.json();
 
-                // Сохранение данных пользователя
-                isUser.value = {
-                    name: user.full_name || user.email.split('@')[0],  // Используем данные из Google
-                    email: user.email,
-                    token: access_token
-                };
-
-                // Сохранение токена в localStorage
-                localStorage.setItem('authToken', access_token);
-                localStorage.setItem('Id', user.id);
-                localStorage.setItem('userName', user.full_name || user.email.split('@')[0]);
-                localStorage.setItem('userEmail', user.email);
-
-                console.log('Успешная авторизация через Google:', isUser.value.name);
-
-                // Очищаем URL от параметров
-                window.history.replaceState({}, '', '/');
-
-                // Закрытие модального окна и сброс формы
-                showAuthModal.value = false;
-                authData.value = { name: '', email: '', password: '' };
-
+                // 4. Сохраняем токен и перенаправляем
+                localStorage.setItem('authToken', data.token);
+                window.location.href = '/profile';
 
             } catch (err) {
                 console.error('Google auth error:', err);
@@ -708,6 +698,106 @@ createApp({
             window.location.href = '/api/auth/google/url';
         };
 
+        // Методы для работы с отзывами
+        const loadAverageRating = async (airportId) => {
+            try {
+                const response = await fetch(`${baseURL}/api/reviews/${airportId}/rating`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                average_rating.value = data.average_rating;
+                console.log('Обновленный рейтинг аэропорта:', average_rating.value);
+
+            } catch (error) {
+                console.error('Ошибка загрузки рейтинга:', error);
+                average_rating.value = 0.0; // Значение по умолчанию при ошибке
+            }
+        };
+
+        const loadReviews = async (airportId) => {
+            reviewLoading.value = true;
+            try {
+                const response = await fetch(`${baseURL}/api/reviews/${airportId}`);
+                if (response.ok) {
+                    reviews.value = await response.json();
+                    console.log('Загрузка отзывов:', reviews.value);
+                    await loadAverageRating(airportId);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки отзывов:', error);
+
+            } finally {
+                reviewLoading.value = false;
+            }
+        };
+
+        const submitReview = async () => {
+            if (!reviewText.value.trim() || !selectedAirport.value) return;
+
+            reviewSending.value = true;
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${baseURL}/api/reviews`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        airport_id: selectedAirport.value.id,
+                        rating: reviewRating.value,
+                        content: reviewText.value.trim()
+                    })
+                });
+
+                if (response.ok) {
+                    reviewText.value = '';
+                    reviewRating.value = 5;
+
+                    await loadAverageRating(selectedAirport.value.id);
+                    loadReviews(selectedAirport.value.id);
+                }
+
+                // Обработка HTTP ошибок
+                if (!response.ok) {
+                    const errorData = await response.json();
+
+                    if (response.status === 422) {
+                        // Ошибка валидации данных
+                        throw new Error('Некорректные данные: ' +
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                    } else if (response.status === 401) {
+                        throw new Error('Необходимо заново авторизоваться');
+                    } else {
+                        throw new Error(errorData.detail || 'Ошибка сервера');
+                    }
+                }
+
+
+            } catch (error) {
+                console.error('Ошибка отправки отзыва:', error);
+                alert(error.message || 'Произошла ошибка отправке отзыва');
+            } finally {
+                reviewSending.value = false;
+            }
+        };
+
+        const formatDate = (dateString) => {
+            return new Date(dateString).toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        };
+
+        const openAuthFromReview = () => {
+            showDetailsModal.value = false; // Закрываем модальное окно аэропорта
+            showAuthModal.value = true; // Открываем модальное окно авторизации
+        };
+
         // Загружаем данные сразу при запуске
         onMounted(() => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -715,29 +805,25 @@ createApp({
             const error = urlParams.get('error');
             const success = urlParams.get('success');
             const authCode = urlParams.get('code');
-            const state = urlParams.get('state')
 
-            const token = localStorage.getItem('authToken');
-
-            if (token) {
-                isUser.value = {
-                    name: localStorage.getItem('userName') || 'Пользователь',
-                    email: localStorage.getItem('userEmail') || '',
-                    token: token
-                };
-            }
+            console.log('error:', error);
+            console.log('success:', success);
+            console.log('authCode:', authCode);
 
             if (error) {
-                alert('Ошибка: ' + decodeURIComponent(error));
-                window.location.href = '/';
-            } else if (success) {
-                alert('Успешно! Ваша почта подтверждена.');
-                window.location.href = '/';
-            } else if (authCode && state) {
-                handleGoogleCallback(authCode, state).then(() => {
-                    // Редирект только после успешной обработки
-                    window.location.href = '/';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ошибка подтверждения',
+                    text: decodeURIComponent(error),
                 });
+            } else if (success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Успешно!',
+                    text: 'Ваша почта подтверждена.',
+                });
+            } else if (authCode) {
+                handleGoogleCallback(authCode)
             }
 
             setInterval(() => {
@@ -745,8 +831,9 @@ createApp({
                     localTime.value = formatLocalTime(selectedAirport.value.time_zone);
                 }
             }, 1000);
-            getUserLocation();
             fetchAirports(1);
+            getUserLocation();
+
         });
 
         return {
@@ -772,17 +859,29 @@ createApp({
             distance,
             currentPage,
             totalPages,
+            isFirstPage,
             localTime,
             citySearch,
             filteredCities,
             resendLoading,
             resendSuccess,
+            activeTab,
+            reviews,
+            reviewLoading,
+            reviewText,
+            reviewRating,
+            reviewSending,
+            average_rating,
+            formatDate,
+            submitReview,
+            loadReviews,
             openCityModal,
             selectCity,
             selectFirstCity,
             formatLocalTime,
             prevPage,
             nextPage,
+            goToFirstPage,
             openUserModal,
             showAirportDetails,
             login,
@@ -790,7 +889,8 @@ createApp({
             logout,
             fetchAirports,
             resendVerificationEmail,
-            redirectToGoogleAuth
+            redirectToGoogleAuth,
+            openAuthFromReview
         };
     }
 }).mount('#app');

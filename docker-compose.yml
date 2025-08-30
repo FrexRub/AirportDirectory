@@ -52,6 +52,11 @@ services:
       - ./static:/usr/share/nginx/html/static
       - ./nginx/ssl/live/airportcards.ru:/etc/nginx/ssl:ro
       - ./nginx/well-known:/usr/share/nginx/html/.well-known/acme-challenge
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - 80:80
       - 443:443

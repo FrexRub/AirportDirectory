@@ -1,0 +1,216 @@
+/* Стили для вкладок */
+.airport-detail-tabs {
+    display: flex;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 500;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+    color: #007bff;
+}
+
+.tab-button.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+}
+
+.review-count {
+    background: #f8f9fa;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+/* Стили для формы отзыва */
+.review-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.rating-stars {
+    margin-bottom: 15px;
+}
+
+.star {
+    font-size: 24px;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    margin-right: 5px;
+}
+
+.star.active {
+    color: #ffc107;
+}
+
+.star:hover {
+    color: #ffc107;
+}
+
+.review-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    resize: vertical;
+    margin-bottom: 15px;
+}
+
+.review-textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.auth-prompt {
+    background: #fff3cd;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    border-left: 4px solid #ffc107;
+}
+
+.submit-review-btn {
+    width: 100%;
+}
+
+/* Стили для списка отзывов */
+.reviews-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.loading-reviews,
+.no-reviews {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.no-reviews i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.review-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.reviewer-info {
+    flex: 1;
+}
+
+.reviewer-name {
+    font-weight: 600;
+    color: #2c3e50;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.review-rating .star {
+    font-size: 16px;
+    cursor: default;
+}
+
+.review-date {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.review-text {
+    color: #495057;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.tab-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin: 0 4px;
+    padding: 2px 6px;
+    background: #fffae9;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e67e00;
+    border: 1px solid #ffd466;
+}
+
+.tab-button.active .tab-rating {
+    background: #ffa900;
+    color: white;
+    border-color: #ffa900;
+}
+
+.review-count {
+    font-size: 12px;
+    color: #6c757d;
+    margin-left: 2px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .airport-detail-tabs {
+        flex-direction: column;
+    }
+    
+    .tab-button {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .review-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .review-date {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .tab-button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    .tab-rating {
+        padding: 1px 4px;
+        font-size: 11px;
+        margin: 0 2px;
+    }
+    
+    .review-count {
+        font-size: 11px;
+    }
+}

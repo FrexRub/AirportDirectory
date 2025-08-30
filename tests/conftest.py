@@ -109,6 +109,7 @@ async def test_user_admin(db_session: AsyncSession) -> User:
             email="testuser@example.com",
             hashed_password=user_hashed_password.decode(),
             is_superuser=True,
+            is_verified=True,
         )
 
         db_session.add(user)
@@ -147,6 +148,19 @@ async def test_user(db_session: AsyncSession) -> User:
         await db_session.commit()
 
     return user
+
+
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
+async def token_user(
+    client: AsyncClient,
+    test_user: User,
+) -> str:
+    token_response = await client.post(
+        "/api/users/login",
+        json={"username": "petr@mail.com", "password": "2wsx@WSX"},
+    )
+    token: str = token_response.json()["access_token"]
+    return token
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")

@@ -48,6 +48,7 @@ async def get_airport(session: AsyncSession, id_airport: UUID) -> Airport:
         raise ExceptDB(exc)
     if airport is None:
         raise NotFindData("Airport by id not found")
+
     return airport
 
 

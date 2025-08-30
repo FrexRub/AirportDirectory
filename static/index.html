@@ -16,7 +16,13 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
             <div class="container">
                 <!-- Логотип и бренд -->
-                <a class="navbar-brand" href="#">Аэропорты России</a>
+                <a class="navbar-brand"
+                :class="{ 'active': isFirstPage }"
+                href="#"
+                @click.prevent="goToFirstPage"
+                :title="isFirstPage ? 'Вернуться на первую страницу' : 'Вы на первой странице'">
+                    Аэропорты России
+                </a>
 
                 <!-- Геолокация и пагинация (центр) -->
                 <div class="d-flex align-items-center mx-auto">
@@ -266,93 +272,175 @@
                 </div>
             </div>
         </div>
+
         <!-- Модальное окно с деталями аэропорта -->
         <div class="airport-detail" v-if="showDetailsModal">
             <div class="airport-detail-header">
                 <h2>{{ selectedAirport.full_name }}</h2>
                 <span class="iata-code">{{ selectedAirport.iata }}</span>
-                <button @click="showDetailsModal = false" class="btn-close">
-                </button>
-
+                <button @click="showDetailsModal = false" class="btn-close"></button>
             </div>
-            <div class="airport-detail-info">
-                <p class="time-info">
-                    <strong class="timezone-label">Временной пояс:</strong>
-                    <span class=>{{ selectedAirport.time_zone }}</span>
-                    <span style="margin-left: 30px"></span>
-                    <strong class="local-time-label">Текущее время (местное):</strong>
-                    <span class="local-time">{{ formatLocalTime(selectedAirport.time_zone) }}</span>
-                </p>
-                <p v-if="distance" class="distance-info">
-                    <i class="bi bi-signpost-split"></i>
-                    <strong>Расстояние до аэропорта:</strong>
-                    {{ distance.kilometers.toFixed(2) }} км.
-                </p>
-                <p v-else class="distance-info">
-                    <strong>Расстояние: </strong> вычисляется...
-                </p>
+
+            <!-- Навигационные вкладки -->
+            <div class="airport-detail-tabs">
+                <button
+                    :class="['tab-button', { 'active': activeTab === 'info' }]"
+                    @click="activeTab = 'info'">
+                    Информация
+                </button>
+                <button
+                    :class="['tab-button', { 'active': activeTab === 'reviews' }]"
+                    @click="activeTab = 'reviews'">
+                    Отзывы
+                    <span v-if="reviews.length > 0" class="tab-rating">
+                        ★ {{ average_rating.toFixed(1) }}
+                    </span>
+                    <span class="review-count">({{ reviews.length }})</span>
+                </button>
             </div>
 
             <div class="airport-detail-content">
-                <img :src="`./img/foto/${selectedAirport.img_airport}`"
-                    class="airport-detail-image"
-                    :alt="selectedAirport.name"
-                >
-                <div class="airport-description">
-                    <p class="description-text">{{ selectedAirport.description }}</p>
-                    <br>
-                    <p><strong>Адрес: </strong><i>{{ selectedAirport.address }}</i></p>
-
-                    <!-- Ссылка на карту -->
-                    <a
-                        :href="`https://yandex.ru/maps/?ll=${selectedAirport.longitude},${selectedAirport.latitude}&z=15`"
-                        target="_blank"
-                        class="btn btn-outline-primary btn-sm mt-2"
-                    >
-                        <i class="bi bi-geo-alt"></i> Яндекс.Карты
-                    </a>
-                    <span style="margin-left: 30px"></span>
-                    <a
-                        :href="`https://www.google.com/maps?q=${selectedAirport.latitude},${selectedAirport.longitude}`"
-                        target="_blank"
-                        class="btn btn-outline-primary btn-sm mt-2"
-                    >
-                        <i class="bi bi-map"></i> Google.Карты
-                    </a>
-                    <div class="airport-links">
-                        <a
-                            :href="selectedAirport.url"
-                            target="_blank"
-                            class="online-board-link">
-                            Сайт аэропорта
-                        </a>
-                        <a
-                            v-if="selectedAirport.online_tablo"
-                            :href="selectedAirport.online_tablo"
-                            target="_blank"
-                            class="online-board-link">
-                            Онлайн табло
-                        </a>
+                <!-- Вкладка информации -->
+                <div v-if="activeTab === 'info'" class="tab-content">
+                    <div class="airport-detail-info">
+                        <p class="time-info">
+                            <strong class="timezone-label">Временной пояс:</strong>
+                            <span>{{ selectedAirport.time_zone }}</span>
+                            <span style="margin-left: 30px"></span>
+                            <strong class="local-time-label">Текущее время (местное):</strong>
+                            <span class="local-time">{{ formatLocalTime(selectedAirport.time_zone) }}</span>
+                        </p>
+                        <p v-if="distance" class="distance-info">
+                            <i class="bi bi-signpost-split"></i>
+                            <strong>Расстояние до аэропорта:</strong>
+                            {{ distance.kilometers.toFixed(2) }} км.
+                        </p>
                     </div>
+
+                    <img :src="`./img/foto/${selectedAirport.img_airport}`"
+                        class="airport-detail-image"
+                        :alt="selectedAirport.name"
+                    >
+
+                    <div class="airport-description">
+                        <p class="description-text">{{ selectedAirport.description }}</p>
+                        <br>
+                        <p><strong>Адрес: </strong><i>{{ selectedAirport.address }}</i></p>
+
+                        <!-- Ссылки на карты -->
+                        <div class="map-links">
+                            <a
+                                :href="`https://yandex.ru/maps/?ll=${selectedAirport.longitude},${selectedAirport.latitude}&z=15`"
+                                target="_blank"
+                                class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-geo-alt"></i> Яндекс.Карты
+                            </a>
+                            <a
+                                :href="`https://www.google.com/maps?q=${selectedAirport.latitude},${selectedAirport.longitude}`"
+                                target="_blank"
+                                class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-map"></i> Google.Карты
+                            </a>
+                        </div>
+
+                        <div class="airport-links">
+                            <a
+                                :href="selectedAirport.url"
+                                target="_blank"
+                                class="online-board-link">
+                                Сайт аэропорта
+                            </a>
+                            <a
+                                v-if="selectedAirport.online_tablo"
+                                :href="selectedAirport.online_tablo"
+                                target="_blank"
+                                class="online-board-link">
+                                Онлайн табло
+                            </a>
+                        </div>
+                    </div>
+
+                    <footer class="card-footer">
+                        <div class="info-column">
+                            <h3>Коды аэропорта</h3>
+                            <ul>
+                                <li><strong>IATA:</strong> {{ selectedAirport.iata }}</li>
+                                <li><strong>ICAO:</strong> {{ selectedAirport.icao }}</li>
+                                <li><strong>Внутренний:</strong> {{ selectedAirport.internal_code }}</li>
+                            </ul>
+                        </div>
+                        <div class="info-column">
+                            <h3>Ближайшие аэропорты</h3>
+                            <ul v-for="airport in nearestdAirport" :key="airport.id">
+                                <li>{{ airport.name }}({{ airport.city }}) {{ airport.distance }} км.</li>
+                            </ul>
+                        </div>
+                    </footer>
                 </div>
 
-                <footer class="card-footer">
-                    <div class="info-column">
-                        <h3>Коды аэропорта</h3>
-                        <ul>
-                            <li><strong>IATA:</strong> {{ selectedAirport.iata }}</li>
-                            <li><strong>ICAO:</strong> {{ selectedAirport.icao }}</li>
-                            <li><strong>Внутренний:</strong> {{ selectedAirport.internal_code }}</li>
-                        </ul>
+                <!-- Вкладка отзывов -->
+                <div v-if="activeTab === 'reviews'" class="tab-content reviews-tab">
+                    <!-- Форма добавления отзыва -->
+                    <div class="review-form">
+                        <h4>Оставить отзыв</h4>
+                        <div class="rating-stars">
+                            <span
+                                v-for="star in 5"
+                                :key="star"
+                                :class="['star', { 'active': star <= reviewRating }]"
+                                @click="reviewRating = star">
+                                ★
+                            </span>
+                        </div>
+                        <textarea
+                            v-model="reviewText"
+                            placeholder="Поделитесь вашими впечатлениями об аэропорте..."
+                            class="review-textarea"
+                            :disabled="!isUser"
+                        ></textarea>
+                        <div v-if="!isUser" class="auth-prompt">
+                            <p>Чтобы оставить отзыв, пожалуйста <a href="#" @click.prevent="openAuthFromReview">войдите</a></p>
+                        </div>
+                        <button
+                            @click="submitReview"
+                            :disabled="!reviewText.trim() || reviewSending || !isUser"
+                            class="btn btn-primary submit-review-btn">
+                            <span v-if="reviewSending" class="spinner-border spinner-border-sm"></span>
+                            {{ reviewSending ? 'Отправка...' : 'Отправить отзыв' }}
+                        </button>
                     </div>
-                    <div class="info-column">
-                        <h3>Ближайшие аэропорты</h3>
-                        <ul v-for="airport in nearestdAirport" :key="airport.id">
-                            <li>{{ airport.name }}({{ airport.city }}) {{ airport.distance }} км.</li>
-                        </ul>
-                    </div>
-                </footer>
 
+                    <!-- Список отзывов -->
+                    <div class="reviews-list">
+                        <div v-if="reviewLoading" class="loading-reviews">
+                            <div class="spinner-border text-primary"></div>
+                            <p>Загрузка отзывов...</p>
+                        </div>
+
+                        <div v-else-if="reviews.length === 0" class="no-reviews">
+                            <i class="bi bi-chat-dots"></i>
+                            <p>Пока нет отзывов. Будьте первым!</p>
+                        </div>
+
+                        <div v-else class="review-item" v-for="review in reviews" :key="review.id">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <span class="reviewer-name">{{ review.user.full_name || 'Анонимный пользователь' }}</span>
+                                    <div class="review-rating">
+                                        <span
+                                            v-for="star in 5"
+                                            :key="star"
+                                            :class="['star', { 'active': star <= review.rating }]">
+                                            ★
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="review-date">{{ formatDate(review.created_at) }}</span>
+                            </div>
+                            <p class="review-text">{{ review.comment_text }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

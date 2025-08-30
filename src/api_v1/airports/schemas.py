@@ -45,6 +45,9 @@ class AirPortOutAllSchemas(BaseModel):
         file_name: str = os.path.join(DIR_LOGOTIP, self.img_top)
         return file_name
 
+    class Config:
+        from_attributes = True
+
     @property
     @computed_field(description="Полный URL фото аэропорта")
     def image_foto_url(self) -> str:
@@ -59,5 +62,4 @@ class AirPortOutGeoSchemas(BaseModel):
     latitude: float
     longitude: float
     img_top: str
-    # img_airport: str = Field(description="Имя файла фотографии аэропорта")
     distance: Optional[float] = Field(None, description="Distance in meters")
