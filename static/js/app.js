@@ -2,7 +2,7 @@ const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
 createApp({
     setup() {
-//        const baseURL = 'http://localhost:8000';
+        // const baseURL = 'http://localhost:8000';
         const baseURL = '';
 
         // Состояние UI
@@ -658,31 +658,24 @@ createApp({
         // callback
         const handleGoogleCallback = async (code) => {
             try {
-                // 1. Получаем код из URL
-                const urlParams = new URLSearchParams(window.location.search);
-                // const authCode = urlParams.get('code');
 
-                // if (!authCode) {
-                //     throw new Error('Код авторизации не получен');
-                // }
-
-                // 2. Отправляем код на бэкенд
+                // Отправляем код на бэкенд               
                 const response = await fetch(`${baseURL}/api/auth/google/callback`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ code: authCode })
+                    body: JSON.stringify({ code: code, state: urlParams.get('state') })
                 });
 
                 if (!response.ok) {
                     throw new Error('Ошибка сервера при авторизации');
                 }
 
-                // 3. Получаем данные пользователя
+                // Получаем данные пользователя
                 const data = await response.json();
 
-                // 4. Сохраняем токен и перенаправляем
+                // Сохраняем токен и перенаправляем
                 localStorage.setItem('authToken', data.token);
                 window.location.href = '/profile';
 
