@@ -656,7 +656,7 @@ createApp({
         };
 
         // callback
-        const handleGoogleCallback = async (code) => {
+        const handleGoogleCallback = async (code, state) => {
             try {
 
                 // Отправляем код на бэкенд               
@@ -665,7 +665,7 @@ createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ code: code, state: urlParams.get('state') })
+                    body: JSON.stringify({ code: code, state: state })
                 });
 
                 if (!response.ok) {
@@ -798,10 +798,7 @@ createApp({
             const error = urlParams.get('error');
             const success = urlParams.get('success');
             const authCode = urlParams.get('code');
-
-            console.log('error:', error);
-            console.log('success:', success);
-            console.log('authCode:', authCode);
+            const state = urlParams.get('state');
 
             if (error) {
                 alert('Ошибка: ' + decodeURIComponent(error));
@@ -810,7 +807,7 @@ createApp({
                 alert('Успешно! Ваша почта подтверждена.');
                 window.location.href = '/';
             } else if (authCode) {
-                handleGoogleCallback(authCode)
+                handleGoogleCallback(authCode, state)
             }
 
             setInterval(() => {
