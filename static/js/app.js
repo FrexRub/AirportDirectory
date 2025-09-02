@@ -811,17 +811,11 @@ createApp({
             console.log('authCode:', authCode);
 
             if (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Ошибка подтверждения',
-                    text: decodeURIComponent(error),
-                });
+                alert('Ошибка: ' + decodeURIComponent(error));
+                window.location.href = '/';
             } else if (success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Успешно!',
-                    text: 'Ваша почта подтверждена.',
-                });
+                alert('Успешно! Ваша почта подтверждена.');
+                window.location.href = '/';
             } else if (authCode) {
                 handleGoogleCallback(authCode)
             }
