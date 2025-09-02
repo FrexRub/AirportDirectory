@@ -677,6 +677,7 @@ createApp({
 
                 // Сохраняем токен и перенаправляем
                 localStorage.setItem('authToken', data.token);
+                console.log("jwt user", data.token)
                 window.location.href = '/profile';
 
             } catch (err) {
