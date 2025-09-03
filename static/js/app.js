@@ -668,17 +668,39 @@ createApp({
                     body: JSON.stringify({ code: code, state: state })
                 });
 
+                // Обработка HTTP ошибок
                 if (!response.ok) {
-                    throw new Error('Ошибка сервера при авторизации');
+                    const errorData = await response.json();
+
+                    if (response.status === 422) {
+                        // Ошибка валидации данных
+                        throw new Error('Некорректные данные: ' +
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                    } else if (response.status === 401) {
+                        throw new Error('Неверные учетные данные: ' +
+                            (errorData.detail?.map?.(e => e.msg).join(', ') || errorData.detail));
+                    } else {
+                        throw new Error(errorData.detail || 'Ошибка сервера');
+                    }
                 }
+                
+                // Успешный ответ
+                const { access_token, token_type, user } = await response.json();
 
-                // Получаем данные пользователя
-                const data = await response.json();
 
-                // Сохраняем токен и перенаправляем
-                localStorage.setItem('authToken', data.token);
-                console.log("jwt user", data.token)
-                window.location.href = '/profile';
+                // Сохранение данных пользователя
+                isUser.value = {
+                    name: user.full_name || authData.value.email.split('@')[0],
+                    email: user.email,
+                    token: access_token
+                };
+
+                // Сохранение токена в localStorage
+                localStorage.setItem('authToken', access_token);
+                localStorage.setItem('Id', user.id);
+                console.log('Успешная авторизация:', isUser.value.name);
+
+                window.location.href = '/';
 
             } catch (err) {
                 console.error('Google auth error:', err);
@@ -686,10 +708,6 @@ createApp({
             } finally {
                 loading.value = false;
             }
-        };
-
-        const retry = () => {
-            window.location.href = '/api/auth/google/url';
         };
 
         // Методы для работы с отзывами
