@@ -700,7 +700,7 @@ createApp({
                 localStorage.setItem('Id', user.id);
                 console.log('Успешная авторизация:', isUser.value.name);
 
-                window.location.href = '/';
+                // window.location.href = '/';
 
             } catch (err) {
                 console.error('Google auth error:', err);
