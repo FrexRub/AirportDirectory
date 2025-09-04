@@ -4,7 +4,7 @@ from uuid import UUID
 from geoalchemy2.functions import ST_DistanceSphere, ST_Point
 from sqlalchemy import Float, Row, select
 from sqlalchemy.engine import Result
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import cast
 
@@ -48,6 +48,27 @@ async def get_airport(session: AsyncSession, id_airport: UUID) -> Airport:
         raise ExceptDB(exc)
     if airport is None:
         raise NotFindData("Airport by id not found")
+
+    return airport
+
+
+async def get_airport_by_name_from_db(session: AsyncSession, airport_title: str) -> Airport:
+    """
+    Возвращает данные аэропорта по его имени
+    :param session: AsyncSession
+        сессия БД
+    :param airport_title: str
+        имя аэропорта
+    :return: Airport
+    """
+    try:
+        stmt = select(Airport).filter(Airport.full_name == airport_title)
+        result: Result = await session.execute(stmt)
+        airport: Airport = result.scalars().one()
+    except SQLAlchemyError as exc:
+        raise ExceptDB(exc)
+    except NoResultFound:
+        raise NotFindData("Airport by name not found")
 
     return airport
 
