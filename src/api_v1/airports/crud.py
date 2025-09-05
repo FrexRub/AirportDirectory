@@ -27,7 +27,7 @@ async def get_all_airport(session: AsyncSession) -> list[Row[Any]]:
         Airport.address,
         Airport.img_top,
         Airport.short_description,
-    )
+    ).order_by(Airport.name)
     result: Result = await session.execute(stmt)
     airports: Sequence[Row[Any]] = result.all()
     return list(airports)
