@@ -1,5 +1,6 @@
 # ruff: isort: skip_file
 import asyncio
+import aiofiles
 import logging
 from pathlib import Path
 from typing import Any, Hashable
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 DIR_NAME = BASE_DIR / "data"
 FILE_NAME = "air_bd.xlsx"
+FILE_NAME_TXT = "airport_title.txt"
 
 
 async def data_to_model(i_data: dict[Hashable, str | float]) -> Airport:
@@ -57,18 +59,21 @@ async def data_from_files_to_db() -> None:
     all_data: list[dict[Hashable, Any]] = df.to_dict("records")  # Данные в виде списка словарей
 
     async with async_session_maker() as session:
-        for i_data in all_data:
-            stmt = select(exists().where(Airport.name == i_data["name"]))
-            res: Result = await session.execute(stmt)
-            exist: bool = bool(res.scalar())
+        async with aiofiles.open(folder_path / FILE_NAME_TXT, "a", encoding="utf-8") as f:
+            for i_data in all_data:
+                stmt = select(exists().where(Airport.name == i_data["name"]))
+                res: Result = await session.execute(stmt)
+                exist: bool = bool(res.scalar())
 
-            if not exist:
-                airport: Airport = await data_to_model(i_data)
-                session.add(airport)
-                logger.info("Airport named %s added to the database" % i_data["name"])
-            else:
-                logger.info("The airport named %s is already in the database" % i_data["name"])
-        await session.commit()
+                if not exist:
+                    airport: Airport = await data_to_model(i_data)
+                    session.add(airport)
+                    airport_title: str = str(i_data["full_name"])
+                    await f.write(f"'{airport_title}'" + ",\n")
+                    logger.info("Airport named %s added to the database" % i_data["name"])
+                else:
+                    logger.info("The airport named %s is already in the database" % i_data["name"])
+            await session.commit()
 
 
 async def data_from_files_to_test_db(session: AsyncSession) -> None:
