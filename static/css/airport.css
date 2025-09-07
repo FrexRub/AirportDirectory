@@ -3,7 +3,7 @@
     margin-bottom: 1em; /* Добавляет отступ между абзацами */
 }
 .airport-card-main {
-    height: 100%;  
+    height: 100%;
     /* transition: transform 0.3s; */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     margin-bottom: 30px;
@@ -65,4 +65,162 @@
 h1 {
     color: #1c294e;
     font-weight: 700;
+}
+
+/* Стили для поиска аэропортов */
+.airport-search-results {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.airport-search-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.airport-search-results .list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 12px 15px;
+}
+
+.airport-search-results .list-group-item:first-child {
+    border-top: none;
+}
+
+.airport-search-results .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.airport-search-results .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Стили для placeholder изображений */
+.airport-search-thumb,
+.airport-avatar,
+.card-img-top {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* Для SVG изображений */
+img[src*="placeholder-airport.svg"],
+img[src*="image/svg+xml"] {
+    padding: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+/* Адаптация для разных размеров */
+.airport-search-thumb {
+    width: 40px;
+    height: 40px;
+}
+
+.airport-avatar {
+    width: 35px;
+    height: 35px;
+}
+
+.card-img-top {
+    height: 160px;
+    object-fit: cover;
+}
+
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.custom-modal {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-body {
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.custom-modal-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.airport-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 12px;
+}
+
+.airport-info {
+    flex-grow: 1;
+}
+
+.airport-address {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.airport-code {
+    background-color: #0d6efd;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.airport-item.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.custom-modal-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.airport-item {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.airport-item:hover {
+    background-color: #f8f9fa;
+}
+
+.airport-name {
+    font-weight: 500;
+    font-size: 1rem;
 }

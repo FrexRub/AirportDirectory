@@ -8,6 +8,7 @@ createApp({
         // Состояние UI
         const showAuthModal = ref(false);
         const showDetailsModal = ref(false);
+        const showAirportSearchModal = ref(false);
         const isLoginForm = ref(true);
         const selectedAirport = ref(null);
         const nearestdAirport = ref(null);
@@ -35,13 +36,17 @@ createApp({
         const citySearch = ref('');
         const isLoading = ref(false);
         const cities = ref(window.externalCities || []);
+        const airport_list = ref(window.externalAirports || []);
         const activeTab = ref('info'); // 'info' или 'reviews'
         const reviews = ref([]);
         const reviewLoading = ref(false);
         const reviewText = ref('');
         const reviewRating = ref(5);
         const reviewSending = ref(false);
-        const average_rating = ref(0.0)
+        const average_rating = ref(0.0);
+        const airportSearch = ref('');
+        const loadingAirportDetails = ref(false);
+        const airportSearchError = ref(null);
 
 
 
@@ -56,8 +61,95 @@ createApp({
 
         const isFirstPage = computed(() => currentPage.value !== 1);
 
-
         // Методы
+
+        // Открытие модального окна
+        const openAirportModal = () => {
+            showAirportSearchModal.value = true;
+            airportSearch.value = ''; // Очищаем предыдущий поиск
+
+            // Фокус на поле ввода после отрисовки модального окна
+            nextTick(() => {
+                const input = document.querySelector('#airportSearchModal input');
+                if (input) {
+                    input.focus();
+                }
+            });
+        };
+
+        // Функция для получения данных аэропорта через API
+        const fetchAirportByName = async (airportName) => {
+            try {
+                loadingAirportDetails.value = true;
+                airportSearchError.value = null;
+
+                const params = new URLSearchParams({
+                    airport_title: airportName,
+                });
+
+                const response = await fetch(`${baseURL}/api/airport?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+
+                const airportData = await response.json();
+                return airportData;
+
+            } catch (error) {
+                console.error('Ошибка при получении данных аэропорта:', error);
+                airportSearchError.value = 'Не удалось загрузить данные аэропорта';
+                throw error;
+            } finally {
+                loadingAirportDetails.value = false;
+            }
+        };
+
+        // Выбор аэропорта по имени с загрузкой данных через API
+        const selectAirportByName = async (airportName) => {
+            try {
+                const airportData = await fetchAirportByName(airportName);
+
+                if (airportData) {
+                    // Показываем детали аэропорта
+                    selectedAirport.value = airportData;
+                    showDetailsModal.value = true;
+                    activeTab.value = 'info';
+
+                    // Закрываем модальное окно поиска
+                    showAirportSearchModal.value = false;
+                    airportSearch.value = '';
+
+                    // Загружаем отзывы
+                    loadReviews(airportData.id);
+                }
+            } catch (error) {
+                // Ошибка уже обработана в fetchAirportByName
+            }
+        };
+
+        // Выбор первого аэропорта по Enter
+        const selectFirstAirport = async () => {
+            if (filteredAirports.value.length > 0 && !loadingAirportDetails.value) {
+                await selectAirportByName(filteredAirports.value[0]);
+            }
+        };
+
+        // Фильтрация только по названиям аэропортов
+        const filteredAirports = computed(() => {
+            if (!airportSearch.value?.trim() || loadingAirportDetails.value) return [];
+
+            const searchTerm = airportSearch.value.toLowerCase().trim();
+
+            return airport_list.value.filter(airportName =>
+                airportName && airportName.toLowerCase().includes(searchTerm)
+            );
+        });
 
         // Фильтрация городов по поисковому запросу
         const filteredCities = computed(() => {
@@ -295,17 +387,14 @@ createApp({
         };
 
         const showAirportDetails = async (airport) => {
-            // получение данных об аэропрте
-            const params_by_id = new URLSearchParams({
-                id: airport.id,
-            });
+            // Закрываем модальное окно поиска
+            showAirportSearchModal.value = false;
 
-            const response_by_id = await fetch(`${baseURL}/api/airport?${params_by_id.toString()}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            // Очищаем поисковый запрос
+            airportSearch.value = '';
+
+            // получение данных об аэропрте
+            const response_by_id = await fetch(`${baseURL}/api/airport/${airport.id}`);
 
             if (!response_by_id.ok) {
                 throw new Error(`Ошибка: ${response_by_id.status}`);
@@ -659,7 +748,7 @@ createApp({
         const handleGoogleCallback = async (code, state) => {
             try {
 
-                // Отправляем код на бэкенд               
+                // Отправляем код на бэкенд
                 const response = await fetch(`${baseURL}/api/auth/google/callback`, {
                     method: 'POST',
                     headers: {
@@ -683,7 +772,7 @@ createApp({
                         throw new Error(errorData.detail || 'Ошибка сервера');
                     }
                 }
-                
+
                 // Успешный ответ
                 const { access_token, token_type, user } = await response.json();
 
@@ -837,11 +926,21 @@ createApp({
             fetchAirports(1);
             getUserLocation();
 
+            const modalElem = document.getElementById('airportSearchModal');
+            if (modalElem) {
+                modalElem.addEventListener('hide.bs.modal', () => {
+                if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                }
+                });
+            }
+
         });
 
         return {
             showAuthModal,
             showDetailsModal,
+            showAirportSearchModal,
             isLoginForm,
             selectedAirport,
             nearestdAirport,
@@ -866,6 +965,7 @@ createApp({
             localTime,
             citySearch,
             filteredCities,
+            filteredAirports,
             resendLoading,
             resendSuccess,
             activeTab,
@@ -875,12 +975,17 @@ createApp({
             reviewRating,
             reviewSending,
             average_rating,
+            airportSearch,
+            loadingAirportDetails,
+            airportSearchError,
             formatDate,
             submitReview,
             loadReviews,
             openCityModal,
+            openAirportModal,
             selectCity,
             selectFirstCity,
+            selectFirstAirport,
             formatLocalTime,
             prevPage,
             nextPage,
@@ -891,6 +996,7 @@ createApp({
             register,
             logout,
             fetchAirports,
+            selectAirportByName,
             resendVerificationEmail,
             redirectToGoogleAuth,
             openAuthFromReview
