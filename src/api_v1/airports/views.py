@@ -11,7 +11,7 @@ from geoalchemy2.types import Geometry
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api_v1.airports.crud import get_airport, get_airports_nearest, get_all_airport
+from src.api_v1.airports.crud import get_airport, get_airport_by_name_from_db, get_airports_nearest, get_all_airport
 from src.core.config import CACHE_EXP, configure_logging
 from src.core.database import get_async_session, get_cache_connection
 from src.core.exceptions import ExceptDB, NotFindData
@@ -61,20 +61,20 @@ async def get_airports_all(
     return paginate(airports_db)
 
 
-@router.get("/airport", response_model=AirPortOutAllSchemas)
+@router.get("/airport/{airport_id}", response_model=AirPortOutAllSchemas)
 async def get_airport_by_id(
-    id: UUID,
+    airport_id: UUID,
     session: AsyncSession = Depends(get_async_session),
     db_cache=Depends(get_cache_connection),
 ) -> AirPortOutAllSchemas:
     """
     Возвращает данные аэропорта по ID
     """
-    logger.info("Start load info about airport with id %s", str(id))
-    airport_json: str = await db_cache.get(str(id))
+    logger.info("Start load info about airport with id %s", str(airport_id))
+    airport_json: str = await db_cache.get(str(airport_id))
     if airport_json is None:
         try:
-            airport: Airport = await get_airport(session=session, id_airport=id)
+            airport: Airport = await get_airport(session=session, id_airport=airport_id)
         except ExceptDB as exp:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -87,10 +87,46 @@ async def get_airport_by_id(
             )
         else:
             airport_json_model: str = await model_to_json(pydantic_model=AirPortOutAllSchemas, object=airport)
-            await db_cache.set(str(id), airport_json_model, ex=CACHE_EXP)
-            logger.info("Write in cache info about airport with id %s", str(id))
+            await db_cache.set(str(airport_id), airport_json_model, ex=CACHE_EXP)
+            logger.info("Write in cache info about airport with id %s", str(airport_id))
     else:
-        logger.info("Read from cache info about airport with id %s", str(id))
+        logger.info("Read from cache info about airport with id %s", str(airport_id))
+        airport: AirPortOutAllSchemas = await json_to_model(  # type: ignore
+            pydantic_model=AirPortOutAllSchemas, json_object=airport_json
+        )  # type: ignore
+    return airport
+
+
+@router.get("/airport", response_model=AirPortOutAllSchemas)
+async def get_airport_by_name(
+    airport_title: str,
+    session: AsyncSession = Depends(get_async_session),
+    db_cache=Depends(get_cache_connection),
+) -> AirPortOutAllSchemas:
+    """
+    Возвращает данные аэропорта по имени аэропорта
+    """
+    logger.info("Start load info about airport with title %s", airport_title)
+    airport_json: str = await db_cache.get(airport_title)
+    if airport_json is None:
+        try:
+            airport: Airport = await get_airport_by_name_from_db(session=session, airport_title=airport_title)
+        except ExceptDB as exp:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{exp}",
+            )
+        except NotFindData as exp:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{exp}",
+            )
+        else:
+            airport_json_model: str = await model_to_json(pydantic_model=AirPortOutAllSchemas, object=airport)
+            await db_cache.set(airport_title, airport_json_model, ex=CACHE_EXP)
+            logger.info("Write in cache info about airport with name %s", airport_title)
+    else:
+        logger.info("Read from cache info about airport with name %s", airport_title)
         airport: AirPortOutAllSchemas = await json_to_model(  # type: ignore
             pydantic_model=AirPortOutAllSchemas, json_object=airport_json
         )  # type: ignore
