@@ -37,8 +37,7 @@ async def test_airport_get_detail(
     result = await test_db.execute(stmt)
     airport = result.scalars().one_or_none()
 
-    data = {"id": airport.id}
-    response = await client.get("api/airport", params=data)
+    response = await client.get(f"api/airport/{airport.id}")
     assert response.status_code == 200
     assert response.json()["name"] == "Шереметьево"
 
