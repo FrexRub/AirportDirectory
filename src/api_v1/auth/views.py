@@ -5,6 +5,8 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import URL
+from authlib.integrations.starlette_client import OAuthError
 
 from src.api_v1.auth.crud import check_auth_user
 from src.api_v1.auth.schemas import AuthUserSchemas, GoogleCallbackSchemas
@@ -25,7 +27,7 @@ from src.core.config import (
     # templates,
     # COOKIE_NAME,
     configure_logging,
-    # oauth_yandex,
+    oauth_yandex,
     setting,
 )
 from src.core.database import get_async_session, get_cache_connection, get_redis_connection
@@ -140,59 +142,77 @@ async def handle_code(
         ),
     )
 
-    #
-    # @router.get("/login/yandex")
-    # async def login(request: Request):
-    #     url = request.url_for("auth_yandex")
-    #     return await oauth_yandex.yandex.authorize_redirect(request, url)
-    #
-    #
-    # @router.get("/yandex")
-    # async def auth_yandex(
-    #     request: Request,
-    #     session: AsyncSession = Depends(get_async_session),
-    # ):
-    #     logger.info("Start of user authentication by Yandex.ID")
-    #     try:
-    #         token = await get_access_token(request=request)
-    #     except ErrorInData as exp:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_400_BAD_REQUEST,
-    #             detail=f"{exp}",
-    #         )
-    #     user_data = await get_yandex_user_data(token["access_token"])
-    #
-    #     user_email = user_data.get("default_email")
-    #     real_name = user_data.get("real_name")
-    #
-    #     user: Optional[User] = await find_user_by_email(session=session, email=user_email)
-    #
-    #     if user is None:
-    #         logger.info("User with email %s not found", user_email)
-    #         user: User = await create_user_without_password(
-    #             session=session,
-    #             user_data=UserBaseSchemas(full_name=real_name, email=user_email),
-    #         )
-    #         logger.info("User with email %s created", user_email)
-    #
-    # access_token: str = await create_jwt(
-    #     user=str(user.id),
-    #     expire_minutes=setting.auth_jwt.access_token_expire_minutes,
-    # )
+
+@router.get("/yandex/url")
+async def url_yandex(request: Request):
+    url: URL = request.url_for("auth_yandex")
+    return await oauth_yandex.yandex.authorize_redirect(request, url)
 
 
-#     refresh_token: str = await create_jwt(
-#         user=str(user.id), expire_minutes=setting.auth_jwt.refresh_token_expire_minutes
-#     )
-#
-#     user.refresh_token = refresh_token
-#     await session.commit()
-#
-#     resp: Response = RedirectResponse("welcome")
-#     resp.set_cookie(key=COOKIE_NAME, value=access_token, httponly=True, samesite="lax")
-#     request.session["user"] = {"family_name": user.full_name, "id": str(user.id)}
-#
-#     return resp
+@router.get("/yandex")
+async def auth_yandex(
+    response: Response,
+    request: Request,
+    session: AsyncSession = Depends(get_async_session),
+    redis: Redis = Depends(get_redis_connection),
+):
+    logger.info("Start of user authentication by Yandex.ID")
+    try:
+        token = await oauth_yandex.yandex.authorize_access_token(request)
+    except OAuthError as exp:
+        logger.exception("Error authentication by Yandex.ID", exc_info=exp)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{exp}",
+        )
+
+    user_data_full = await oauth_yandex.yandex.parse_id_token(request, token)
+
+    user_data: AuthUserSchemas = AuthUserSchemas(
+        name=user_data_full["real_name"],
+        email=user_data_full["default_email"],
+        picture=user_data_full["default_avatar_id"],
+    )
+
+    # найти/зарегистрировать пользователя в БД, вернуть пользователя
+    user: User = await check_auth_user(session=session, user_info=user_data)
+
+    # сгенерить токен
+    logger.info("Generate JWT for user by name %s" % user.full_name)
+    access_token: str = await create_jwt(
+        user=str(user.id),
+        expire_minutes=setting.auth_jwt.access_token_expire_minutes,
+    )
+    refresh_token: str = await create_jwt(
+        user=str(user.id),
+        expire_minutes=setting.auth_jwt.refresh_token_expire_minutes,
+    )
+
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=access_token,
+        httponly=True,
+        secure=False,  # True в production
+        samesite="lax",
+        path="/",
+    )
+
+    request.session["user"] = {"family_name": user.full_name, "id": str(user.id)}
+    await redis.set(str(user.id), refresh_token)
+
+    return OutUserSchemas(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserInfoSchemas(
+            id=str(user.id),
+            email=user.email,
+            full_name=user.full_name,
+            is_active=user.is_active,
+            is_verified=user.is_verified,
+        ),
+    )
+
+
 #
 #
 # @router.get(

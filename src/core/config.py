@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from authlib.integrations.starlette_client import OAuth
 
 BASE_DIR = Path(__file__).parent.parent.parent
 
@@ -81,12 +82,21 @@ class AuthGoogle(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
 
 
+class AuthYandex(BaseSettings):
+    OAUTH_YANDEX_CLIENT_ID: str = "test"
+    OAUTH_YANDEX_CLIENT_SECRET: str = "test"
+    YANDEX_REDIRECT_URI: str = "test"
+
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf8", extra="ignore")
+
+
 class Setting(BaseSettings):
     db: DbSetting = DbSetting()
     redis: RedisSettings = RedisSettings()
     email_settings: EmailSettings = EmailSettings()
     auth_jwt: AuthJWT = AuthJWT()
     google: AuthGoogle = AuthGoogle()
+    yandex: AuthYandex = AuthYandex()
     secret_key: SecretStr = "test"
     templates_dir: str = "templates"
     frontend_url: str = "test"
@@ -95,3 +105,18 @@ class Setting(BaseSettings):
 
 
 setting = Setting()
+
+oauth_yandex = OAuth()
+
+oauth_yandex.register(
+    name="yandex",
+    client_id=setting.yandex.CLIENT_ID,
+    client_secret=setting.yandex.CLIENT_SECRET,
+    authorize_url="https://oauth.yandex.ru/authorize",
+    access_token_url="https://oauth.yandex.ru/token",
+    userinfo_endpoint="https://login.yandex.ru/info",
+    client_kwargs={
+        "scope": "login:email login:info login:avatar",
+        "token_endpoint_auth_method": "client_secret_post",
+    },
+)
