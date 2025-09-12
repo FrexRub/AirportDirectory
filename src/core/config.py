@@ -117,6 +117,5 @@ oauth_yandex.register(
     userinfo_endpoint="https://login.yandex.ru/info",
     client_kwargs={
         "scope": "login:email login:info login:avatar",
-        "token_endpoint_auth_method": "client_secret_post",
     },
 )

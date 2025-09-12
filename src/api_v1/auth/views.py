@@ -146,6 +146,7 @@ async def handle_code(
 @router.get("/yandex/url")
 async def url_yandex(request: Request):
     url: URL = request.url_for("auth_yandex")
+    logger.info("Authentication by Yandex.ID - url for redirect %s" % url)
     return await oauth_yandex.yandex.authorize_redirect(request, url)
 
 
