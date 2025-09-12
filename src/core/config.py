@@ -110,8 +110,8 @@ oauth_yandex = OAuth()
 
 oauth_yandex.register(
     name="yandex",
-    client_id=setting.yandex.CLIENT_ID,
-    client_secret=setting.yandex.CLIENT_SECRET,
+    client_id=setting.yandex.OAUTH_YANDEX_CLIENT_ID,
+    client_secret=setting.yandex.OAUTH_YANDEX_CLIENT_SECRET,
     authorize_url="https://oauth.yandex.ru/authorize",
     access_token_url="https://oauth.yandex.ru/token",
     userinfo_endpoint="https://login.yandex.ru/info",
