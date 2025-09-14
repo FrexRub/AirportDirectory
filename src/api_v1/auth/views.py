@@ -5,32 +5,19 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.datastructures import URL
-from authlib.integrations.starlette_client import OAuthError
 
 from src.api_v1.auth.crud import check_auth_user
-from src.api_v1.auth.schemas import AuthUserSchemas, GoogleCallbackSchemas
-from src.api_v1.auth.utils import generate_google_oauth_redirect_uri
+from src.api_v1.auth.schemas import AuthUserSchemas, GoogleCallbackSchemas, YandexCallbackSchemas
+from src.api_v1.auth.utils import generate_google_oauth_redirect_uri, get_yandex_token, get_yandex_user_info
 from src.api_v1.users.schemas import OutUserSchemas, UserInfoSchemas
-
-#
-# from src.api_v1.users.crud import (
-#     create_user_without_password,
-#     find_user_by_email,
-#     get_user_from_db,
-# )
-# from src.api_v1.users.schemas import UserBaseSchemas
-# from src.api_v1.auth.schemas import LoginSchemas
-# from src.api_v1.auth.utils import get_access_token, get_yandex_user_data
 from src.core.config import (
     COOKIE_NAME,
-    # templates,
-    # COOKIE_NAME,
     configure_logging,
     oauth_yandex,
     setting,
 )
 from src.core.database import get_async_session, get_cache_connection, get_redis_connection
+from src.core.exceptions import ExceptAuthentication
 from src.core.jwt_utils import create_jwt
 from src.models.user import User
 
@@ -51,7 +38,7 @@ async def get_google_oauth_redirect_uri(db_cache: Redis = Depends(get_cache_conn
     "/google/callback",
     response_model=OutUserSchemas,
     status_code=status.HTTP_200_OK,
-    include_in_schema=True,
+    include_in_schema=False,
 )
 async def handle_code(
     response: Response,
@@ -144,35 +131,57 @@ async def handle_code(
 
 
 @router.get("/yandex/url")
-async def url_yandex(request: Request):
-    url: URL = request.url_for("auth_yandex")
-    logger.info("Authentication by Yandex.ID - url for redirect %s" % url)
-    return await oauth_yandex.yandex.authorize_redirect(request, url)
+async def url_yandex(db_cache: Redis = Depends(get_cache_connection)):
+    authorization_uri = await oauth_yandex.yandex.create_authorization_url(
+        setting.yandex.YANDEX_REDIRECT_URI, scope=["login:email", "login:info", "login:avatar"]
+    )
+    logger.info("Generate uri for authentication by Yandex.ID")
+    await db_cache.set(authorization_uri["state"], "state", ex=300)
+    return {"url": authorization_uri["url"]}  # Redirect выполняется на фронтенде
 
 
-@router.get("/yandex")
+@router.post(
+    "/yandex",
+    response_model=OutUserSchemas,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
 async def auth_yandex(
     response: Response,
     request: Request,
+    code_state: YandexCallbackSchemas,
     session: AsyncSession = Depends(get_async_session),
     redis: Redis = Depends(get_redis_connection),
+    db_cache: Redis = Depends(get_cache_connection),
 ):
     logger.info("Start of user authentication by Yandex.ID")
+    yandex_state: str = await db_cache.get(code_state.state)
+
+    if yandex_state is None:
+        raise HTTPException(status_code=400, detail="Error state for Yandex")
+
     try:
-        token = await oauth_yandex.yandex.authorize_access_token(request)
-    except OAuthError as exp:
+        token = await get_yandex_token(code_state.code)
+    except ExceptAuthentication as exp:
         logger.exception("Error authentication by Yandex.ID", exc_info=exp)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"{exp}",
         )
 
-    user_data_full = await oauth_yandex.yandex.parse_id_token(request, token)
+    try:
+        user_info = await get_yandex_user_info(token["access_token"])
+    except ExceptAuthentication as exp:
+        logger.exception("Error authentication by Yandex.ID", exc_info=exp)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{exp}",
+        )
 
-    user_data: AuthUserSchemas = AuthUserSchemas(
-        name=user_data_full["real_name"],
-        email=user_data_full["default_email"],
-        picture=user_data_full["default_avatar_id"],
+    user_data = AuthUserSchemas(
+        name=user_info.get("real_name", ""),
+        email=user_info.get("default_email", ""),
+        picture=user_info.get("default_avatar_id", ""),
     )
 
     # найти/зарегистрировать пользователя в БД, вернуть пользователя
@@ -212,16 +221,3 @@ async def auth_yandex(
             is_verified=user.is_verified,
         ),
     )
-
-
-#
-#
-# @router.get(
-#     "/welcome",
-#     include_in_schema=False,
-# )
-# def welcome(request: Request):
-#     user = request.session.get("user")
-#     if not user:
-#         return RedirectResponse("/")
-#     return templates.TemplateResponse(name="welcome.html", context={"request": request, "user": user})

@@ -1,10 +1,10 @@
 import logging
 from pathlib import Path
 
+from authlib.integrations.starlette_client import OAuth
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from authlib.integrations.starlette_client import OAuth
 
 BASE_DIR = Path(__file__).parent.parent.parent
 

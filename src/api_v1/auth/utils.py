@@ -3,20 +3,20 @@ import secrets
 import urllib.parse
 
 import aiohttp
-
-# from authlib.integrations.starlette_client import OAuthError
-# from fastapi import Request
+from authlib.oauth2.rfc6749 import OAuth2Token
 from redis import Redis
 
-from src.core.config import configure_logging, setting  # , oauth_yandex
-
-# from src.core.exceptions import ExceptAuthentication
+from src.core.config import configure_logging, setting
+from src.core.exceptions import ExceptAuthentication
 
 configure_logging(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def generate_google_oauth_redirect_uri(db_cache: Redis):
+async def generate_google_oauth_redirect_uri(db_cache: Redis) -> str:
+    """
+    Генерация uri для редиректа, сохранения стэйта в БД Redis для подтверждения легитимности запроса
+    """
     random_state = secrets.token_urlsafe(16)
     await db_cache.set(random_state, "state", ex=300)
 
@@ -39,23 +39,46 @@ async def generate_google_oauth_redirect_uri(db_cache: Redis):
     return f"{base_url}?{query_string}"
 
 
-async def get_yandex_user_data(access_token):
-    params = {"format": "json"}
-    headers = {"Authorization": f"OAuth {access_token}"}
+async def get_yandex_user_info(access_token: str) -> dict:
+    """
+    Получает информацию о пользователе от Yandex
+    """
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://login.yandex.ru/info", params=params, headers=headers) as response:
-            if response.status == 200:
-                return await response.json()
-            else:
-                response.raise_for_status()
+        user_info_url = "https://login.yandex.ru/info"
+
+        headers = {"Authorization": f"OAuth {access_token}", "Content-Type": "application/json"}
+
+        params = {"format": "json"}
+
+        async with session.get(user_info_url, headers=headers, params=params) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                raise ExceptAuthentication(detail=f"Yandex token error: {response.status}, {error_text}")
+
+            return await response.json()
 
 
-# async def get_access_token(request: Request):
-#     try:
-#         token = await oauth_yandex.yandex.authorize_access_token(request)
-#         # query_params = request.query_params
-#     except OAuthError as exp:
-#         logger.exception("Error authentication by Yandex.ID", exc_info=exp)
-#         raise ExceptAuthentication(detail=exp)
-#
-#     return token
+async def get_yandex_token(code: str) -> OAuth2Token:
+    """
+    Получает токен от Yandex OAuth используя код авторизации
+    """
+    async with aiohttp.ClientSession() as session:
+        token_url = "https://oauth.yandex.ru/token"
+
+        data = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "client_id": setting.yandex.OAUTH_YANDEX_CLIENT_ID,
+            "client_secret": setting.yandex.OAUTH_YANDEX_CLIENT_SECRET,
+            "redirect_uri": setting.yandex.YANDEX_REDIRECT_URI,
+        }
+
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        async with session.post(token_url, data=data, headers=headers) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                raise ExceptAuthentication(detail=f"Yandex token error: {response.status}, {error_text}")
+
+            token_data = await response.json()
+            return OAuth2Token(token_data)
