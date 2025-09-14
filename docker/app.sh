@@ -1,7 +1,3 @@
 #!/bin/bash
 
-gunicorn src.main:app \
-  --workers 2 \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000 \
-  --forwarded-allow-ips="*"
+gunicorn src.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 --forwarded-allow-ips="*"
