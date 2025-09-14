@@ -183,22 +183,86 @@
 }
 
 .google-btn {
-    background-color: white;
-    color: #757575;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    transition: background-color 0.3s;
+    padding: 12px 16px;
+    border: 2px solid #5e08c6;
+    border-radius: 8px;
+    background-color: white;
+    color: #333;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 12px;
 }
 .google-btn:hover {
-    background-color: #f8f9fa;
+    background-color: #fff5f3;
+    border-color: #5e08c6;
+    transform: translateY(-1px);
 }
 .google-btn img {
     width: 18px;
     height: 18px;
     margin-right: 10px;
+}
+
+.google-btn:active {
+    transform: translateY(0);
+}
+
+.yandex-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #fc3f1d;
+    border-radius: 8px;
+    background-color: white;
+    color: #333;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 12px;
+}
+
+.yandex-btn:hover {
+    background-color: #fff5f3;
+    border-color: #e0351a;
+    transform: translateY(-1px);
+}
+
+.yandex-btn:active {
+    transform: translateY(0);
+}
+
+.yandex-btn img {
+    margin-right: 8px;
+    height: 20px;
+    width: auto;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 576px) {
+    .yandex-btn {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .yandex-btn img {
+        height: 18px;
+    }
+
+    .google-btn {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .google-btn img {
+        height: 18px;
+    }
 }
