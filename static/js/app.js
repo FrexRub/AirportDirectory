@@ -799,6 +799,76 @@ createApp({
             }
         };
 
+        const redirectToYandexAuth = async () => {
+            try {
+                isLoading.value = true;
+
+                // Вызываем FastAPI endpoint для получения URL авторизации Yandex
+                const response = await fetch(`${baseURL}/api/auth/yandex/url`);
+
+                if (response.ok) {
+                    // Получаем URL и перенаправляем пользователя
+                    const data = await response.json();
+                    console.log("call back uri for yandex:", data.url)
+                    window.location.href = data.url;
+                } else {
+                    throw new Error('Не удалось получить URL для авторизации Yandex');
+                }
+            } catch (error) {
+                console.error('Ошибка при перенаправлении на Yandex Auth:', error);
+                alert('Произошла ошибка при попытке авторизации через Yandex');
+            } finally {
+                isLoading.value = false;
+            }
+        };
+
+        // callback для обработки ответа от Yandex
+        const handleYandexCallback = async (code, state) => {
+            try {
+                console.log("Start calback Yandex.ID")
+                // Отправляем код на бэкенд
+                const response = await fetch(`${baseURL}/api/auth/yandex`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: code, state: state })
+                });
+
+                // Обработка HTTP ошибок
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Ошибка сервера');
+                }
+
+                // Успешный ответ
+                const { access_token, token_type, user } = await response.json();
+
+                // Сохранение данных пользователя
+                isUser.value = {
+                    name: user.full_name || user.email.split('@')[0],
+                    email: user.email,
+                    token: access_token
+                };
+
+                // Сохранение токена в localStorage
+                localStorage.setItem('authToken', access_token);
+                localStorage.setItem('Id', user.id);
+
+                console.log('Успешная авторизация через Yandex:', isUser.value.name);
+
+                // Закрываем модальное окно
+                showAuthModal.value = false;
+
+            } catch (err) {
+                console.error('Yandex auth error:', err);
+                error.value = err.message || 'Ошибка авторизации через Yandex';
+            } finally {
+                loading.value = false;
+            }
+        };
+
+
         // Методы для работы с отзывами
         const loadAverageRating = async (airportId) => {
             try {
@@ -915,7 +985,14 @@ createApp({
                 alert('Успешно! Ваша почта подтверждена.');
                 window.location.href = '/';
             } else if (authCode) {
-                handleGoogleCallback(authCode, state)
+                // Определяем провайдера по URL
+                const currentUrl = window.location.href;
+
+                if (currentUrl.includes('yandex')) {
+                    handleYandexCallback(authCode, state);
+                } else {
+                    handleGoogleCallback(authCode, state);
+                }
             }
 
             setInterval(() => {
@@ -999,6 +1076,7 @@ createApp({
             selectAirportByName,
             resendVerificationEmail,
             redirectToGoogleAuth,
+            redirectToYandexAuth,
             openAuthFromReview
         };
     }

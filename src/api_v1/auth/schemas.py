@@ -15,3 +15,8 @@ class AuthUserSchemas(BaseModel):
 class GoogleCallbackSchemas(BaseModel):
     code: str
     state: str
+
+
+class YandexCallbackSchemas(BaseModel):
+    code: str
+    state: str

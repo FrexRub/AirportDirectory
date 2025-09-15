@@ -205,6 +205,12 @@
                             {{ isLoginForm ? 'Войти через Google' : 'Зарегистрироваться через Google' }}
                         </button>
 
+                        <!-- Кнопка входа через Yandex -->
+                        <button @click="redirectToYandexAuth" class="yandex-btn mb-3">
+                            <img src="./img/yandex.jpg" width="128" alt="Yandex ID">
+                            {{ isLoginForm ? 'Войти через Yandex ID' : 'Зарегистрироваться через Yandex ID' }}
+                        </button>
+
                         <div class="divider-with-text">
                             <span>или</span>
                         </div>
