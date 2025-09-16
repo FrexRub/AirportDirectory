@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 from fastapi_pagination.utils import FastAPIPaginationWarning
 from starlette.middleware.sessions import SessionMiddleware
+from starlette_prometheus import PrometheusMiddleware, metrics
 
 from src.api_v1 import router as api_router
 from src.core.config import configure_logging, setting
@@ -49,6 +50,12 @@ app.add_middleware(
 )
 
 app.add_middleware(SessionMiddleware, secret_key=setting.secret_key.get_secret_value())
+
+# Добавляем Prometheus middleware
+app.add_middleware(PrometheusMiddleware)
+
+# Добавляем эндпоинт для метрик
+app.add_route("/metrics", metrics)
 
 app.include_router(router=api_router)
 
