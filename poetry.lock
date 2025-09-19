@@ -2968,6 +2968,22 @@ anyio = ">=3.6.2,<5"
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
 
 [[package]]
+name = "starlette-exporter"
+version = "0.23.0"
+description = "Prometheus metrics exporter for Starlette applications."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "starlette_exporter-0.23.0-py3-none-any.whl", hash = "sha256:ea1a27f2aae48122931e2384a361a03e00261efbb4a665ce1ae2e46f29123d5e"},
+    {file = "starlette_exporter-0.23.0.tar.gz", hash = "sha256:f80998db2d4a3462808a9bce56950046b113d3fab6ec6c20cb6de4431d974969"},
+]
+
+[package.dependencies]
+prometheus-client = ">=0.12"
+starlette = ">=0.35"
+
+[[package]]
 name = "starlette-prometheus"
 version = "0.10.0"
 description = "Prometheus integration for Starlette"
@@ -3571,4 +3587,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "9ff4665c5449a2819d2eff7ab32f2d4564183218c56cbe6e24e3ed71cf58c58b"
+content-hash = "e6c1e06e4f31cce82969a2c022586e176d82ce251e2250de7095b176e140e801"
