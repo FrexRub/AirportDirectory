@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main_, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main_, develop ]
   workflow_dispatch:
 
 jobs:
@@ -49,7 +49,7 @@ jobs:
     name: Deploy to VM
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'    # деплой только с main
+    if: github.ref == 'refs/heads/main_'    # деплой только с main
     steps:
       - uses: actions/checkout@v4
 
